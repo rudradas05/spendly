@@ -1,6 +1,5 @@
 "use server";
 import { db } from "@/lib/prisma";
-import { getMonthRangeInIST } from "@/lib/utils/dateRange";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
@@ -22,19 +21,17 @@ export async function getCurrentBudget(accountId: string) {
         userId: user.id,
       },
     });
-    // const currentDate = new Date();
-    // const startOfMonth = new Date(
-    //   currentDate.getFullYear(),
-    //   currentDate.getMonth(),
-    //   1
-    // );
-    // const endOfMonth = new Date(
-    //   currentDate.getFullYear(),
-    //   currentDate.getMonth() + 1,
-    //   0
-    // );
-
-    const { startOfMonth, endOfMonth } = getMonthRangeInIST();
+    const currentDate = new Date();
+    const startOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0
+    );
     const expenses = await db.transaction.aggregate({
       where: {
         userId: user.id,

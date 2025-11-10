@@ -2,7 +2,6 @@ import { inngest } from "./client";
 import { db } from "../prisma";
 import { sendEmail } from "@/actions/send-email";
 import EmailTemplate from "@/emails/template";
-import { getMonthRangeInIST } from "../utils/dateRange";
 
 type ClerkUserUpdatedEvent = {
   name: "clerk/user.updated";
@@ -156,21 +155,19 @@ export const checkBudgetAlerts = inngest.createFunction(
       const defaultAccount = budget.user.accounts[0];
       if (!defaultAccount) continue;
 
-      const { startOfMonth, endOfMonth } = getMonthRangeInIST();
-
       await step.run(`check-budget-${budget.id}`, async () => {
-        // const currentDate = new Date();
+        const currentDate = new Date();
 
-        // const startOfMonth = new Date(
-        //   currentDate.getFullYear(),
-        //   currentDate.getMonth(),
-        //   1
-        // );
-        // const endOfMonth = new Date(
-        //   currentDate.getFullYear(),
-        //   currentDate.getMonth() + 1,
-        //   0
-        // );
+        const startOfMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          1
+        );
+        const endOfMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0
+        );
 
         // ✅ Aggregate total expenses this month
         const expenses = await db.transaction.aggregate({
