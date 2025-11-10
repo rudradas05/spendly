@@ -230,11 +230,14 @@ export function BudgetProgress({
     : 0;
 
   const handleUpdateBudget = async () => {
-    if (!newBudget || parseFloat(newBudget) <= 0) {
+    const amount = parseFloat(newBudget);
+
+    if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
-    await updateBudgetFn(newBudget);
+
+    await updateBudgetFn(amount);
   };
 
   const handleCancel = () => {

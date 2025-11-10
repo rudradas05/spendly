@@ -58,7 +58,7 @@ export async function getCurrentBudget(accountId: string) {
   }
 }
 
-export async function updateBudget(amount: string) {
+export async function updateBudget(amount: number) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
