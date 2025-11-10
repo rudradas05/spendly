@@ -20,7 +20,7 @@ export default async function DashboardPage() {
       {/* Budget Progress */}
       {defaultAccount && (
         <BudgetProgress
-          initialBudget={budgetData?.budget}
+          initialBudget={budgetData?.budget || null}
           currentExpenses={budgetData?.currentExpenses || 0}
         />
       )}
