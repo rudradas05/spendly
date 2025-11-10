@@ -1,4 +1,3 @@
-"use client";
 import { BarLoader } from "react-spinners";
 
 import { Suspense } from "react";

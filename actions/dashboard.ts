@@ -4,8 +4,6 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-
-
 interface CreateAccountInput {
   name: string;
   type: "CURRENT" | "SAVINGS";
@@ -13,60 +11,125 @@ interface CreateAccountInput {
   isDefault: boolean;
 }
 
+const serializeTransaction = (obj:any) => {
+  const serialized = { ...obj };
+  if (obj.balance) {
+    serialized.balance = obj.balance.toNumber();
+  }
+  if (obj.amount) {
+    serialized.amount = obj.amount.toNumber();
+  }
+  return serialized;
+};
 
-const serializeTransaction=(obj: any)=>{
-    const serialized = {...obj};
-    if(obj.balance){
-        serialized.balance = obj.balance.toNumber();
+export async function createAccount(data: CreateAccountInput) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) {
+      throw new Error("User not found");
     }
+
+    //convert balance to float before saving
+    const balanceFloat = parseFloat(data.balance);
+    if (isNaN(balanceFloat)) {
+      throw new Error("Invalid balance amount");
+    }
+
+    const existingAccounts = await db.account.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const shouldBeDefault =
+      existingAccounts.length === 0 ? true : data.isDefault;
+
+    if (shouldBeDefault) {
+      await db.account.updateMany({
+        where: { userId: user.id, isDefault: true },
+        data: { isDefault: false },
+      });
+    }
+
+    const account = await db.account.create({
+      data: {
+        ...data,
+        balance: balanceFloat,
+        userId: user.id,
+        isDefault: shouldBeDefault,
+      },
+    });
+    const serializedAccount = serializeTransaction(account);
+    revalidatePath("/dashboard");
+    return { success: true, data: serializedAccount };
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 }
 
-export async function createAccount(data: CreateAccountInput){
-    try {
-        const {userId} = await auth();
-        if(!userId) throw new Error("Unauthorized");
-        const user = await db.user.findUnique({
-            where:{clerkUserId: userId},
-        });
-        if(!user){
-            throw new Error("User not found");
-        }
+// export async function getUserAccounts() {
+//   const { userId } = await auth();
+//   if (!userId) throw new Error("Unauthorized");
+//   const user = await db.user.findUnique({
+//     where: { clerkUserId: userId },
+//   });
+//   if (!user) {
+//     throw new Error("User not found");
+//   }
 
-        //convert balance to float before saving
-        const balanceFloat = parseFloat(data.balance);
-        if(isNaN(balanceFloat)){
-            throw new Error("Invalid balance amount");
-        }
+//   const accounts = await db.account.findMany({
+//     where:{
+//         userId: user.id
+//     },
+//     orderBy:{createdAt:"desc"},
+//     include:{
+//         _count:{
+//             select:{
+//                  transactions:true
+//             }
+           
+//         }
+//     }
+//   })
+//   const serializedAccount = accounts.map(serializeTransaction);
+//   return serializedAccount;
+// }
 
 
-        const existingAccounts = await db.account.findMany({
-            where:{
-                userId: user.id
-            },
-        })
+export async function getUserAccounts() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
 
-        const shouldBeDefault = existingAccounts.length===0? true : data.isDefault;
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
 
-        if(shouldBeDefault){
-            await db.account.updateMany({
-                where:{userId : user.id, isDefault: true},
-                data: {isDefault: false},
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-            })
-        }
+  try {
+    const accounts = await db.account.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: {
+            transactions: true,
+          },
+        },
+      },
+    });
 
-        const account = await  db.account.create({
-            data:{
-                ...data,
-                balance: balanceFloat,
-                userId : user.id,
-                isDefault : shouldBeDefault,
-            }
-        }) ;
-        const serializedAccount = serializeTransaction(account);
-        revalidatePath("/dashboard");
-        return {success: true, data: serializedAccount};
-    } catch (error) {
-        
-    }   
+    // Serialize accounts before sending to client
+    const serializedAccounts = accounts.map(serializeTransaction);
+
+    return serializedAccounts;
+  } catch (error :any) {
+    console.error(error.message);
+  }
 }
