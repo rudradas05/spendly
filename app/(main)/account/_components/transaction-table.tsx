@@ -1338,7 +1338,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Transaction } from "@prisma/client";
@@ -1427,13 +1427,10 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
   const [recurringFilter, setRecurringFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const {
-    loading: deleteLoading,
-    fn: deleteFn,
-    data: deleted,
-  } = useFetch(bulkDeleteTransactions);
+  const { loading: deleteLoading, fn: deleteFn } =
+    useFetch(bulkDeleteTransactions);
 
-  // ✅ Filter + Sort Transactions
+  // Filter + sort transactions
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
 
@@ -1473,19 +1470,21 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
     return result;
   }, [transactions, searchItem, typeFilter, recurringFilter, sortConfig]);
 
-  // ✅ Pagination Logic
+  // Pagination logic
   const totalPages = Math.max(
     1,
     Math.ceil(filteredAndSortedTransactions.length / ITEMS_PER_PAGE)
   );
 
+  const safePage = Math.min(currentPage, totalPages);
+
   const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedTransactions.slice(
       startIndex,
       startIndex + ITEMS_PER_PAGE
     );
-  }, [filteredAndSortedTransactions, currentPage]);
+  }, [filteredAndSortedTransactions, safePage]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -1522,20 +1521,15 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
       `Are you sure you want to delete ${selectedIds.length} transaction(s)?`
     );
     if (!confirmed) return;
-    await deleteFn(selectedIds);
-  };
-
-  useEffect(() => {
-    if (deleted && !deleteLoading) {
-      if (deleted.success) {
-        toast.success("Transactions deleted successfully");
-        setSelectedIds([]);
-        router.refresh();
-      } else {
-        toast.error(deleted.message || "Failed to delete transactions");
-      }
+    const result = await deleteFn(selectedIds);
+    if (result?.success) {
+      toast.success("Transactions deleted successfully");
+      setSelectedIds([]);
+      router.refresh();
+    } else if (result) {
+      toast.error(result.message || "Failed to delete transactions");
     }
-  }, [deleted, deleteLoading, router]);
+  };
 
   const handleClearFilters = () => {
     setSearchItem("");
@@ -1548,33 +1542,36 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
   return (
     <div className="space-y-4">
       {deleteLoading && (
-        <BarLoader className="mt-4" width="100%" color="#9333ea" />
+        <BarLoader className="mt-4" width="100%" color="#14b8a6" />
       )}
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search transactions..."
-            value={searchItem}
-            onChange={(e) => {
-              setSearchItem(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-8"
-          />
-        </div>
+      <div className="rounded-2xl border bg-white/70 p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search transactions..."
+              value={searchItem}
+              onChange={(e) => {
+                setSearchItem(e.target.value);
+                setCurrentPage(1);
+                setSelectedIds([]);
+              }}
+              className="pl-8 bg-white/80"
+            />
+          </div>
 
-        <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           <Select
             value={typeFilter}
             onValueChange={(value) => {
               setTypeFilter(value);
               setCurrentPage(1);
+              setSelectedIds([]);
             }}
           >
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -1588,9 +1585,10 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
             onValueChange={(value) => {
               setRecurringFilter(value);
               setCurrentPage(1);
+              setSelectedIds([]);
             }}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-44 bg-white/80">
               <SelectValue placeholder="All Transactions" />
             </SelectTrigger>
             <SelectContent>
@@ -1622,11 +1620,12 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
               <X className="h-4 w-4" />
             </Button>
           )}
+          </div>
         </div>
       </div>
 
       {/* Transactions Table */}
-      <div className="rounded-md border">
+      <div className="rounded-2xl border bg-white/70 shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -1693,9 +1692,12 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
               paginatedTransactions.map((transaction) => (
                 <TableRow
                   key={transaction.id}
-                  className="hover:bg-muted/50 transition-colors cursor-pointer"
+                  className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                  onClick={() =>
+                    router.push(`/transaction/create?edit=${transaction.id}`)
+                  }
                 >
-                  <TableCell>
+                  <TableCell onClick={(event) => event.stopPropagation()}>
                     <Checkbox
                       onCheckedChange={() => handleSelect(transaction.id)}
                       checked={selectedIds.includes(transaction.id)}
@@ -1721,10 +1723,11 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                   </TableCell>
 
                   <TableCell
-                    className="text-right font-medium"
-                    style={{
-                      color: transaction.type === "EXPENSE" ? "red" : "green",
-                    }}
+                    className={`text-right font-medium ${
+                      transaction.type === "EXPENSE"
+                        ? "text-rose-600"
+                        : "text-emerald-600"
+                    }`}
                   >
                     {transaction.type === "EXPENSE" ? "-" : "+"}
                     {CURRENCY_SYMBOL}
@@ -1738,7 +1741,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                           <TooltipTrigger asChild>
                             <Badge
                               variant="outline"
-                              className="gap-1 bg-purple-400 hover:bg-purple-300 cursor-pointer transition-colors"
+                              className="gap-1 border-emerald-200 bg-emerald-100/80 text-emerald-700 hover:bg-emerald-100 cursor-pointer transition-colors"
                             >
                               <RefreshCw className="h-3 w-3" />
                               {
@@ -1766,7 +1769,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="gap-1 cursor-pointer hover:bg-muted/80 transition-colors"
+                        className="gap-1 border-slate-200 bg-slate-100/80 text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors"
                       >
                         <Clock className="h-3 w-3" />
                         One-time
@@ -1774,7 +1777,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                     )}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell onClick={(event) => event.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -1813,24 +1816,24 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between mt-4 text-sm">
+      <div className="flex items-center justify-between rounded-2xl border bg-white/70 px-4 py-3 text-sm shadow-sm">
         <span className="text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          Page {safePage} of {totalPages}
         </span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
+            onClick={() => handlePageChange(safePage - 1)}
+            disabled={safePage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(safePage + 1)}
+            disabled={safePage === totalPages}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

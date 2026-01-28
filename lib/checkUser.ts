@@ -26,7 +26,8 @@ export const checkUser = async () => {
       },
     });
     return newUser;
-  } catch (error: any) {
-    console.log(error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.log(message);
   }
 };

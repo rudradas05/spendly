@@ -54,17 +54,25 @@ export const syncUserDeletion = inngest.createFunction(
       await db.user.delete({
         where: { clerkUserId: data.id },
       });
-      console.log(`🗑️ Deleted user for Clerk ID: ${data.id}`);
-    } catch (error: any) {
-      if (error.code === "P2025") {
-        console.warn(`⚠️ User already deleted for Clerk ID: ${data.id}`);
+      console.log(`Deleted user for Clerk ID: ${data.id}`);
+    } catch (error: unknown) {
+      const errorWithCode =
+        typeof error === "object" && error !== null && "code" in error
+          ? (error as { code?: string; message?: string })
+          : undefined;
+      const message =
+        error instanceof Error
+          ? error.message
+          : errorWithCode?.message ?? "Unknown error";
+
+      if (errorWithCode?.code === "P2025") {
+        console.warn(`User already deleted for Clerk ID: ${data.id}`);
       } else {
-        console.error("❌ Error deleting user:", error.message);
+        console.error("Error deleting user:", message);
       }
     }
   }
 );
-
 // export const checkBudgetAlerts = inngest.createFunction(
 //   { name: "Check Budget Alerts" },
 //   { cron: "0 */6 * * *" },
@@ -139,22 +147,13 @@ export const checkBudgetAlerts = inngest.createFunction(
     const budgets = await step.run("fetch-budgets", async () => {
       return await db.budget.findMany({
         include: {
-          user: {
-            include: {
-              accounts: {
-                where: { isDefault: true },
-              },
-            },
-          },
+          user: true,
         },
       });
     });
 
     // ✅ Loop through budgets
     for (const budget of budgets) {
-      const defaultAccount = budget.user.accounts[0];
-      if (!defaultAccount) continue;
-
       await step.run(`check-budget-${budget.id}`, async () => {
         const currentDate = new Date();
 
@@ -173,7 +172,6 @@ export const checkBudgetAlerts = inngest.createFunction(
         const expenses = await db.transaction.aggregate({
           where: {
             userId: budget.userId,
-            accountId: defaultAccount.id,
             type: "EXPENSE",
             date: {
               // gte: startDate,
@@ -216,7 +214,7 @@ export const checkBudgetAlerts = inngest.createFunction(
 
           await sendEmail({
             to: budget.user.email,
-            subject: `Budget Alert for ${defaultAccount.name}`,
+            subject: "Monthly Budget Alert",
             react: EmailTemplate({
               userName: budget.user.email,
               type: "budget-alert",
@@ -224,7 +222,7 @@ export const checkBudgetAlerts = inngest.createFunction(
                 percentageUsed,
                 budgetAmount,
                 totalExpenses,
-                accountName: defaultAccount.name,
+                accountName: "All accounts",
                 dashboardUrl: `https://spendly-omega.vercel.app/dashboard`, // ✅ dynamic
               },
             }),
@@ -249,3 +247,6 @@ function isNewMonth(lastAlertDate: Date, currentDate: Date) {
     lastAlertDate.getFullYear() !== currentDate.getFullYear()
   );
 }
+
+
+

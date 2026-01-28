@@ -6,36 +6,33 @@ import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center bg-background text-foreground">
+    <div className="flex min-h-screen items-center justify-center px-6 text-center">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        className="rounded-3xl border bg-white/70 px-10 py-12 shadow-lg"
       >
-        <h1 className="text-[8rem] md:text-[10rem] font-extrabold gradient-title leading-none mb-6">
-          404
-        </h1>
-
-        <h2 className="text-3xl md:text-4xl font-semibold mb-4">
-          Page Not Found
-        </h2>
-
-        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-10">
-          Oops! The page you&apos;re looking for doesn&apos;t exist or has been
-          moved.
+        <p className="text-xs uppercase tracking-[0.4em] text-emerald-500">
+          Error 404
         </p>
-
-        <Link href="/">
-          <Button
-            size="lg"
-            className="bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300"
-          >
-            Return Home
+        <h1 className="font-display text-5xl font-semibold text-slate-900 md:text-6xl">
+          This page drifted away.
+        </h1>
+        <p className="mx-auto mt-4 max-w-md text-sm text-slate-600">
+          The link you followed doesn't exist or was moved. Let's get you back
+          on track.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <Button asChild size="lg">
+            <Link href="/">Return home</Link>
           </Button>
-        </Link>
-
-        <div className="mt-10 text-5xl animate-bounce">🚀</div>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/dashboard">Go to dashboard</Link>
+          </Button>
+        </div>
       </motion.div>
     </div>
   );
 }
+

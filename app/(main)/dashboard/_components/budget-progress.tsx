@@ -184,7 +184,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
@@ -214,16 +214,10 @@ export function BudgetProgress({
   currentExpenses,
 }: BudgetProgressProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [newBudget, setNewBudget] = useState(
-    initialBudget?.amount?.toString() || ""
-  );
+  const initialBudgetValue = initialBudget?.amount?.toString() || "";
+  const [newBudget, setNewBudget] = useState(initialBudgetValue);
 
-  const {
-    loading: isLoading,
-    fn: updateBudgetFn,
-    data: updatedBudget,
-    error,
-  } = useFetch(updateBudget);
+  const { loading: isLoading, fn: updateBudgetFn } = useFetch(updateBudget);
 
   const percentUsed = initialBudget
     ? (currentExpenses / initialBudget.amount) * 100
@@ -237,26 +231,19 @@ export function BudgetProgress({
       return;
     }
 
-    await updateBudgetFn(amount);
+    const result = await updateBudgetFn(amount);
+    if (result?.success) {
+      setIsEditing(false);
+      toast.success("Budget updated successfully");
+    } else if (result) {
+      toast.error(result.error || "Failed to update budget");
+    }
   };
 
   const handleCancel = () => {
-    setNewBudget(initialBudget?.amount?.toString() || "");
+    setNewBudget(initialBudgetValue);
     setIsEditing(false);
   };
-
-  useEffect(() => {
-    if (updatedBudget?.success) {
-      setIsEditing(false);
-      toast.success("Budget updated successfully");
-    }
-  }, [updatedBudget]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error.message || "Failed to update budget");
-    }
-  }, [error]);
 
   // Color logic for progress bar
   const progressColor =
@@ -267,11 +254,11 @@ export function BudgetProgress({
       : "bg-green-500";
 
   return (
-    <Card>
+    <Card className="rounded-2xl border bg-white/70 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex-1">
           <CardTitle className="text-sm font-medium">
-            Monthly Budget (Default Account)
+            Monthly Budget (All Accounts)
           </CardTitle>
 
           <div className="flex items-center gap-2 mt-1">
@@ -317,7 +304,10 @@ export function BudgetProgress({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setNewBudget(initialBudgetValue);
+                    setIsEditing(true);
+                  }}
                   className="h-6 w-6"
                 >
                   <Pencil className="h-3 w-3" />

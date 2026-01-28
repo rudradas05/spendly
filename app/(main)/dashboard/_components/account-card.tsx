@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 
 // import { updateDefaultAccount } from "@/actions/account";
 // import {
@@ -73,7 +73,8 @@
 //           </CardHeader>
 //           <CardContent>
 //             <div className="text-2xl font-bold">
-//               ₹{parseFloat(balance).toFixed(2)}
+//               {CURRENCY_SYMBOL}
+//         {parseFloat(balance).toFixed(2)}
 //             </div>
 //             <p className="text-xs text-muted-foreground">
 //               {type.charAt(0) + type.slice(1).toLowerCase()} Account
@@ -97,8 +98,6 @@
 
 // export default AccountCard;
 
-"use client";
-
 import { updateDefaultAccount } from "@/actions/account";
 import {
   Card,
@@ -111,8 +110,8 @@ import { Switch } from "@/components/ui/switch";
 import useFetch from "@/hooks/use-fetch";
 import { ArrowDownRight, ArrowUpRight, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 interface AccountCardProps {
   account: {
@@ -120,49 +119,36 @@ interface AccountCardProps {
     name: string;
     type: "CURRENT" | "SAVINGS";
     balance: string;
+    minBalance?: number | null;
     isDefault: boolean;
   };
 }
 
 const AccountCard = ({ account }: AccountCardProps) => {
-  const { name, type, balance, id, isDefault } = account;
+  const { name, type, balance, id, isDefault, minBalance } = account;
+  const minBalanceValue =
+    typeof minBalance === "number" && !Number.isNaN(minBalance)
+      ? minBalance
+      : null;
 
-  const {
-    loading: updateDefaultLoading,
-    fn: updateDefaultFn,
-    data: updateAccount,
-    error,
-  } = useFetch(updateDefaultAccount);
+  const { loading: updateDefaultLoading, fn: updateDefaultFn } =
+    useFetch(updateDefaultAccount);
 
   // ✅ Fix 1: Prevent redirect when switching
-  const handleDefaultChange = async (event: any) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (isDefault) {
+  const handleDefaultChange = async (checked: boolean) => {
+    if (!checked || isDefault) {
       toast.warning("You need at least 1 default account");
       return;
     }
-    await updateDefaultFn(id);
+    const result = await updateDefaultFn(id);
+    if (result?.success) {
+      toast.success("Default account updated successfully");
+    } else if (result) {
+      toast.error(result.error || "Failed to update default account.");
+    }
   };
 
   // ✅ Fix 2: Toast only once even if re-rendered
-  const hasShownToast = useRef(false);
-
-  useEffect(() => {
-    if (updateAccount?.success && !hasShownToast.current) {
-      toast.success("Default account updated successfully");
-      hasShownToast.current = true;
-    }
-  }, [updateAccount]);
-
-  // ✅ Fix 3: Only trigger error toast once
-  useEffect(() => {
-    if (error && !hasShownToast.current) {
-      toast.error(error.message || "Failed to update default account.");
-      hasShownToast.current = true;
-    }
-  }, [error]);
 
   return (
     <div>
@@ -180,7 +166,7 @@ const AccountCard = ({ account }: AccountCardProps) => {
             <Switch
               className="cursor-pointer"
               checked={isDefault}
-              onClick={handleDefaultChange}
+              onCheckedChange={handleDefaultChange}
               disabled={updateDefaultLoading}
             />
           )}
@@ -189,10 +175,18 @@ const AccountCard = ({ account }: AccountCardProps) => {
         <Link href={`/account/${id}`}>
           <CardContent>
             <div className="text-2xl font-bold">
-              ₹{parseFloat(balance).toFixed(2)}
+              {CURRENCY_SYMBOL}
+              {parseFloat(balance).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               {type.charAt(0) + type.slice(1).toLowerCase()} Account
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {minBalanceValue && minBalanceValue > 0
+                ? `Min balance alert: ${CURRENCY_SYMBOL}${minBalanceValue.toFixed(
+                    2
+                  )}`
+                : "Min balance alert: Not set"}
             </p>
           </CardContent>
 

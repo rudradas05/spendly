@@ -2,15 +2,46 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 
-const serializeTransaction = (obj: any) => {
-  const serialized = { ...obj };
-  if (obj.balance) {
-    serialized.balance = obj.balance.toNumber();
+type DecimalLike = { toNumber: () => number };
+type SerializableAmounts = {
+  balance?: DecimalLike | number | null;
+  amount?: DecimalLike | number | null;
+  minBalance?: DecimalLike | number | null;
+};
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong";
+
+const serializeTransaction = <
+  T extends Record<string, unknown> & SerializableAmounts,
+>(
+  obj: T
+) => {
+  const serialized = {
+    ...obj,
+  } as T & { balance?: number | null; amount?: number | null };
+
+  if (obj.balance !== undefined) {
+    serialized.balance =
+      obj.balance && typeof obj.balance === "object" && "toNumber" in obj.balance
+        ? obj.balance.toNumber()
+        : (obj.balance ?? null);
   }
-  if (obj.amount) {
-    serialized.amount = obj.amount.toNumber();
+  if (obj.amount !== undefined) {
+    serialized.amount =
+      obj.amount && typeof obj.amount === "object" && "toNumber" in obj.amount
+        ? obj.amount.toNumber()
+        : (obj.amount ?? null);
+  }
+  if (obj.minBalance !== undefined) {
+    serialized.minBalance =
+      obj.minBalance &&
+      typeof obj.minBalance === "object" &&
+      "toNumber" in obj.minBalance
+        ? obj.minBalance.toNumber()
+        : (obj.minBalance ?? null);
   }
   return serialized;
 };
@@ -25,6 +56,15 @@ export async function updateDefaultAccount(accountId: string) {
     if (!user) {
       throw new Error("User not found");
     }
+    const existingAccount = await db.account.findFirst({
+      where: {
+        id: accountId,
+        userId: user.id,
+      },
+    });
+    if (!existingAccount) {
+      throw new Error("Account not found");
+    }
     await db.account.updateMany({
       where: { userId: user.id, isDefault: true },
       data: { isDefault: false },
@@ -33,7 +73,6 @@ export async function updateDefaultAccount(accountId: string) {
     const account = await db.account.update({
       where: {
         id: accountId,
-        userId: user.id,
       },
       data: {
         isDefault: true,
@@ -41,12 +80,13 @@ export async function updateDefaultAccount(accountId: string) {
     });
     revalidatePath("/dashboard");
     return { success: true, data: serializeTransaction(account) };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
 export async function getAccountWithTransactions(accountId: string) {
+  noStore();
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
   const user = await db.user.findUnique({
@@ -55,7 +95,7 @@ export async function getAccountWithTransactions(accountId: string) {
   if (!user) {
     throw new Error("User not found");
   }
-  const account = await db.account.findUnique({
+  const account = await db.account.findFirst({
     where: { id: accountId, userId: user.id },
     include: {
       transactions: {
@@ -165,10 +205,10 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     // ✅ Calculate account balance changes
     const accountBalanceChanges: Record<string, number> = transactions.reduce(
       (acc, transaction) => {
+        const amount =
+          transaction.amount?.toNumber?.() ?? Number(transaction.amount);
         const change =
-          transaction.type === "EXPENSE"
-            ? Number(transaction.amount)
-            : -Number(transaction.amount);
+          transaction.type === "EXPENSE" ? amount : -amount;
 
         acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
 
@@ -203,12 +243,15 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     });
 
     // ✅ Revalidate affected pages
-    revalidatePath("/account/[id]");
+    Object.keys(accountBalanceChanges).forEach((accountId) => {
+      revalidatePath(`/account/${accountId}`);
+    });
     revalidatePath("/dashboard");
 
     return { success: true };
-  } catch (error: any) {
-    console.error("❌ bulkDeleteTransactions error:", error);
-    return { success: false, message: error.message || "Something went wrong" };
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error("❌ bulkDeleteTransactions error:", message);
+    return { success: false, message };
   }
 }

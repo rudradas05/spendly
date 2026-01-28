@@ -1,16 +1,26 @@
 import { Resend } from "resend";
+import type { ReactElement } from "react";
 
-export async function sendEmail({ to, subject, react }: any) {
+type SendEmailParams = {
+  to: string;
+  subject: string;
+  react: ReactElement;
+};
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Something went wrong";
+
+export async function sendEmail({ to, subject, react }: SendEmailParams) {
   const resend = new Resend(process.env.RESEND_API_KEY || "");
   try {
     const data = await resend.emails.send({
-      from: "Spendly - Finance App <onboarding@resend.dev>",
+      from: "Welth - Finance App <onboarding@resend.dev>",
       to,
       subject,
       react,
     });
     return { success: true, data };
-  } catch (error) {
-    return { success: false, error };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
   }
 }

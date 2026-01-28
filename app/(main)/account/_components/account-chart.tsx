@@ -308,20 +308,24 @@ export function AccountChart({ transactions }: AccountChartProps) {
   );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-        <CardTitle className="text-base font-normal">
-          Transaction Overview
-        </CardTitle>
+    <Card className="rounded-2xl border bg-white/70 shadow-sm backdrop-blur">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            Transaction overview
+          </p>
+          <CardTitle className="text-lg font-semibold mt-2">
+            Income vs expenses
+          </CardTitle>
+        </div>
 
-        {/* ✅ Fixed TypeScript error with explicit type cast */}
         <Select
           value={dateRange}
           onValueChange={(value) =>
             setDateRange(value as keyof typeof DATE_RANGES)
           }
         >
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[150px] bg-white/80 border-slate-200">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
           <SelectContent>
@@ -335,31 +339,36 @@ export function AccountChart({ transactions }: AccountChartProps) {
       </CardHeader>
 
       <CardContent>
-        {/* Summary section */}
-        <div className="flex justify-around mb-6 text-sm">
-          <div className="text-center">
-            <p className="text-muted-foreground">Total Income</p>
-            <p className="text-lg font-bold text-green-500">
+        <div className="grid gap-3 sm:grid-cols-3 mb-6 text-sm">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-700">
+              Total income
+            </p>
+            <p className="mt-2 text-lg font-semibold text-emerald-700">
               {CURRENCY_SYMBOL}
               {totals.income.toFixed(2)}
             </p>
           </div>
 
-          <div className="text-center">
-            <p className="text-muted-foreground">Total Expenses</p>
-            <p className="text-lg font-bold text-red-500">
+          <div className="rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-orange-700">
+              Total expenses
+            </p>
+            <p className="mt-2 text-lg font-semibold text-orange-700">
               {CURRENCY_SYMBOL}
               {totals.expense.toFixed(2)}
             </p>
           </div>
 
-          <div className="text-center">
-            <p className="text-muted-foreground">Net</p>
+          <div className="rounded-xl border border-slate-200 bg-white/70 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+              Net
+            </p>
             <p
-              className={`text-lg font-bold ${
+              className={`mt-2 text-lg font-semibold ${
                 totals.income - totals.expense >= 0
-                  ? "text-green-500"
-                  : "text-red-500"
+                  ? "text-emerald-700"
+                  : "text-rose-600"
               }`}
             >
               {CURRENCY_SYMBOL}
@@ -368,49 +377,67 @@ export function AccountChart({ transactions }: AccountChartProps) {
           </div>
         </div>
 
-        {/* Bar Chart */}
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={filteredData}
-              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+              margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <defs>
+                <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.2} />
+                </linearGradient>
+                <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f97316" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#f97316" stopOpacity={0.2} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#e2e8f0" />
               <XAxis
                 dataKey="date"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: "#94a3b8" }}
               />
               <YAxis
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: "#94a3b8" }}
                 tickFormatter={(value) => `${CURRENCY_SYMBOL}${value}`}
               />
               <Tooltip
                 formatter={(value: number) => [
-                  `${CURRENCY_SYMBOL}${value}`,
+                  `${CURRENCY_SYMBOL}${value.toFixed(2)}`,
                   undefined,
                 ]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
+                  borderRadius: 12,
+                  fontSize: 12,
                 }}
               />
-              <Legend />
+              <Legend
+                verticalAlign="bottom"
+                iconType="circle"
+                wrapperStyle={{ color: "#64748b", fontSize: 12 }}
+              />
               <Bar
                 dataKey="income"
                 name="Income"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
+                fill="url(#incomeFill)"
+                radius={[10, 10, 0, 0]}
+                barSize={20}
               />
               <Bar
                 dataKey="expense"
                 name="Expense"
-                fill="#ef4444"
-                radius={[4, 4, 0, 0]}
+                fill="url(#expenseFill)"
+                radius={[10, 10, 0, 0]}
+                barSize={20}
               />
             </BarChart>
           </ResponsiveContainer>
