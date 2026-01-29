@@ -138,6 +138,12 @@ const AddTransactionForm = ({
 
   const type = watch("type");
   const dateValue = watch("date");
+  const resolvedDate =
+    dateValue instanceof Date
+      ? dateValue
+      : typeof dateValue === "string" || typeof dateValue === "number"
+        ? new Date(dateValue)
+        : undefined;
   const isRecurring = watch("isRecurring");
   const categoryValue = watch("category");
   const accountValue = watch("accountId");
@@ -386,23 +392,13 @@ const AddTransactionForm = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateValue instanceof Date
-                      ? format(dateValue, "PPP")
-                      : dateValue
-                        ? format(new Date(dateValue), "PPP")
-                        : "Pick a date"}
+                    {resolvedDate ? format(resolvedDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={
-                      dateValue instanceof Date
-                        ? dateValue
-                        : dateValue
-                          ? new Date(dateValue)
-                          : undefined
-                    }
+                    selected={resolvedDate}
                     onSelect={(value) => {
                       if (value) {
                         setValue("date", value, { shouldValidate: true });
