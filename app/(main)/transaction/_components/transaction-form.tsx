@@ -65,15 +65,18 @@ interface AddTransactionFormProps {
   accounts: AccountOption[];
   categories: Category[];
   initialData?: TransactionFormData | null;
+  forceEdit?: boolean;
 }
 
 const AddTransactionForm = ({
   accounts = [],
   categories = [],
   initialData = null,
+  forceEdit = false,
 }: AddTransactionFormProps) => {
   const router = useRouter();
-  const isEditing = Boolean(initialData?.id);
+  const canUpdate = Boolean(initialData?.id);
+  const isEditing = forceEdit || canUpdate;
 
   const defaultAccountId = useMemo(() => {
     if (initialData?.accountId) return initialData.accountId;
@@ -123,7 +126,6 @@ const AddTransactionForm = ({
     setValue,
     watch,
     reset,
-    getValues,
     formState: { errors },
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -139,6 +141,10 @@ const AddTransactionForm = ({
   const isRecurring = watch("isRecurring");
   const categoryValue = watch("category");
   const accountValue = watch("accountId");
+  const recurringInterval = watch("recurringInterval");
+
+  const quickAmounts =
+    type === "INCOME" ? [250, 500, 1000, 2500] : [25, 50, 100, 250];
 
   const availableCategories = useMemo(
     () => categories.filter((category) => category.type === type),
@@ -195,7 +201,7 @@ const AddTransactionForm = ({
   }, [accountValue, router, updateResult]);
 
   const handleSubmitForm = async (values: TransactionFormValues) => {
-    if (isEditing && initialData?.id) {
+    if (canUpdate && initialData?.id) {
       await updateFn(initialData.id, values);
       return;
     }
@@ -204,7 +210,7 @@ const AddTransactionForm = ({
 
   if (accounts.length === 0) {
     return (
-      <div className="rounded-2xl border bg-white/70 p-8 text-center shadow-sm">
+      <div className="surface-panel p-8 text-center">
         <h2 className="text-lg font-semibold text-slate-900">
           Create an account first
         </h2>
@@ -220,8 +226,19 @@ const AddTransactionForm = ({
 
   return (
     <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
-      <div className="rounded-2xl border bg-white/70 p-6 shadow-sm">
-        <div className="grid gap-6 md:grid-cols-2">
+      <div className="surface-panel p-4 md:p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="section-kicker">Details</p>
+          {isEditing && <span className="surface-chip">Editing</span>}
+        </div>
+        <div className="mt-1 flex flex-col gap-2">
+          <h2 className="text-base font-semibold">Transaction basics</h2>
+          <p className="text-xs text-muted-foreground">
+            Capture the essentials and let Spendly handle the rest.
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Type</label>
             <Select
@@ -260,6 +277,25 @@ const AddTransactionForm = ({
                 {...register("amount")}
               />
             </div>
+            <div className="flex flex-wrap gap-2">
+              {quickAmounts.map((value) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 rounded-full px-2 text-xs"
+                  onClick={() =>
+                    setValue("amount", value.toString(), {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  {CURRENCY_SYMBOL}
+                  {value}
+                </Button>
+              ))}
+            </div>
             {errors.amount && (
               <p className="text-xs text-red-500">{errors.amount.message}</p>
             )}
@@ -268,6 +304,11 @@ const AddTransactionForm = ({
           <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">Description</label>
             <Input placeholder="Add a note" {...register("description")} />
+            {errors.description && (
+              <p className="text-xs text-red-500">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -290,7 +331,9 @@ const AddTransactionForm = ({
               </SelectContent>
             </Select>
             {errors.accountId && (
-              <p className="text-xs text-red-500">{errors.accountId.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.accountId.message}
+              </p>
             )}
           </div>
 
@@ -317,124 +360,137 @@ const AddTransactionForm = ({
               <p className="text-xs text-red-500">{errors.category.message}</p>
             )}
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Date</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dateValue && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateValue instanceof Date
-                    ? format(dateValue, "PPP")
-                    : dateValue
-                      ? format(new Date(dateValue), "PPP")
-                      : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={
-                    dateValue instanceof Date
-                      ? dateValue
-                      : dateValue
-                        ? new Date(dateValue)
-                        : undefined
-                  }
-                  onSelect={(value) => {
-                    if (value) {
-                      setValue("date", value, { shouldValidate: true });
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            {errors.date && (
-              <p className="text-xs text-red-500">{errors.date.message}</p>
-            )}
+        <div className="mt-4 border-t border-white/60 pt-4">
+          <div className="flex flex-col gap-2">
+            <p className="section-kicker">Schedule</p>
+            <h2 className="text-base font-semibold">Timing & recurrence</h2>
+            <p className="text-xs text-muted-foreground">
+              Pick a date and let recurring expenses run automatically.
+            </p>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Recurring transaction</p>
-                <p className="text-xs text-muted-foreground">
-                  Set a schedule for repeating transactions.
-                </p>
-              </div>
-              <Switch
-                checked={isRecurring}
-                onCheckedChange={(checked) =>
-                  setValue("isRecurring", checked, { shouldValidate: true })
-                }
-              />
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateValue && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateValue instanceof Date
+                      ? format(dateValue, "PPP")
+                      : dateValue
+                        ? format(new Date(dateValue), "PPP")
+                        : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={
+                      dateValue instanceof Date
+                        ? dateValue
+                        : dateValue
+                          ? new Date(dateValue)
+                          : undefined
+                    }
+                    onSelect={(value) => {
+                      if (value) {
+                        setValue("date", value, { shouldValidate: true });
+                      }
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {errors.date && (
+                <p className="text-xs text-red-500">{errors.date.message}</p>
+              )}
             </div>
 
-            {isRecurring && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Interval</label>
-                <Select
-                  value={watch("recurringInterval") ?? ""}
-                  onValueChange={(value) =>
-                    setValue(
-                      "recurringInterval",
-                      value as TransactionFormValues["recurringInterval"],
-                      {
-                        shouldValidate: true,
-                      },
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select interval" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RECURRING_INTERVALS.map((interval) => (
-                      <SelectItem key={interval.value} value={interval.value}>
-                        {interval.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.recurringInterval && (
-                  <p className="text-xs text-red-500">
-                    {errors.recurringInterval.message}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 p-3">
+                <div>
+                  <p className="text-sm font-medium">Recurring transaction</p>
+                  <p className="text-xs text-muted-foreground">
+                    Set a schedule for repeating transactions.
                   </p>
-                )}
+                </div>
+                <Switch
+                  checked={isRecurring}
+                  onCheckedChange={(checked) =>
+                    setValue("isRecurring", checked, { shouldValidate: true })
+                  }
+                />
               </div>
-            )}
+
+              {isRecurring && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Interval</label>
+                  <Select
+                    value={recurringInterval ?? ""}
+                    onValueChange={(value) =>
+                      setValue(
+                        "recurringInterval",
+                        value as TransactionFormValues["recurringInterval"],
+                        {
+                          shouldValidate: true,
+                        }
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select interval" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRING_INTERVALS.map((interval) => (
+                        <SelectItem key={interval.value} value={interval.value}>
+                          {interval.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.recurringInterval && (
+                    <p className="text-xs text-red-500">
+                      {errors.recurringInterval.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : isEditing ? (
+              "Update Transaction"
+            ) : (
+              "Add Transaction"
+            )}
+          </Button>
+
+          {isEditing && accountValue && (
+            <Button asChild variant="outline">
+              <Link href={`/account/${accountValue}`}>Cancel</Link>
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : isEditing ? (
-            "Update Transaction"
-          ) : (
-            "Add Transaction"
-          )}
-        </Button>
-
-        {isEditing && accountValue && (
-          <Button asChild variant="outline">
-            <Link href={`/account/${accountValue}`}>Cancel</Link>
-          </Button>
-        )}
-      </div>
     </form>
   );
 };
