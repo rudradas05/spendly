@@ -37,7 +37,7 @@ export const transactionSchema = z
         return val;
       },
       z
-        .date({ required_error: "Date is required" })
+        .date({ message: "Date is required" })
         .refine((val) => !isNaN(val.getTime()), { message: "Invalid date" })
     ),
 
