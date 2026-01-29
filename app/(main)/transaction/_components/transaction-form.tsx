@@ -40,7 +40,7 @@ const RECURRING_INTERVALS = [
   { value: "YEARLY", label: "Yearly" },
 ] as const;
 
-type TransactionFormValues = z.infer<typeof transactionSchema>;
+type TransactionFormValues = z.input<typeof transactionSchema>;
 
 type AccountOption = {
   id: string;
