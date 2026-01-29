@@ -101,7 +101,7 @@
 //             )}
 
 //             <Text style={styles.footer}>
-//               Thank you for using <strong>Welth</strong>. Keep tracking your
+//               Thank you for using <strong>Spendly</strong>. Keep tracking your
 //               finances for better financial health!
 //             </Text>
 //           </Container>
@@ -324,7 +324,7 @@ export default function EmailTemplate(props: EmailTemplateProps) {
             )}
 
             <Text style={styles.footer}>
-              Thank you for using <strong>Welth</strong>. Keep tracking your
+              Thank you for using <strong>Spendly</strong>. Keep tracking your
               finances for better financial health!
             </Text>
           </Container>

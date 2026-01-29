@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { format } from "date-fns";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
@@ -21,13 +21,11 @@ interface RecentTransactionsProps {
 
 const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
   return (
-    <div className="rounded-2xl border bg-white/70 p-6 shadow-sm backdrop-blur">
+    <div className="surface-panel p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Activity
-          </p>
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
+          <p className="section-kicker">Activity</p>
+          <h3 className="text-lg font-semibold">Recent transactions</h3>
         </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/transaction/create">Add</Link>
@@ -49,11 +47,11 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
             return (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between rounded-xl border border-transparent bg-slate-50/70 px-4 py-3 transition-colors hover:bg-slate-50"
+                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-4 py-3 transition-colors hover:bg-white/80"
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${
                       isExpense
                         ? "bg-rose-100 text-rose-600"
                         : "bg-emerald-100 text-emerald-600"
@@ -71,7 +69,7 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{format(new Date(transaction.date), "PP")}</span>
-                      <span className="text-slate-400">&middot;</span>
+                      <span className="text-slate-400">·</span>
                       <span>{transaction.accountName}</span>
                     </div>
                   </div>

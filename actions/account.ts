@@ -50,12 +50,14 @@ export async function updateDefaultAccount(accountId: string) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
+
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
     if (!user) {
       throw new Error("User not found");
     }
+
     const existingAccount = await db.account.findFirst({
       where: {
         id: accountId,
@@ -65,6 +67,7 @@ export async function updateDefaultAccount(accountId: string) {
     if (!existingAccount) {
       throw new Error("Account not found");
     }
+
     await db.account.updateMany({
       where: { userId: user.id, isDefault: true },
       data: { isDefault: false },
@@ -78,6 +81,7 @@ export async function updateDefaultAccount(accountId: string) {
         isDefault: true,
       },
     });
+
     revalidatePath("/dashboard");
     return { success: true, data: serializeTransaction(account) };
   } catch (error: unknown) {
@@ -89,12 +93,14 @@ export async function getAccountWithTransactions(accountId: string) {
   noStore();
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
   if (!user) {
     throw new Error("User not found");
   }
+
   const account = await db.account.findFirst({
     where: { id: accountId, userId: user.id },
     include: {
@@ -118,65 +124,6 @@ export async function getAccountWithTransactions(accountId: string) {
   };
 }
 
-// export async function bulkDeleteTransactions(transactionIds: []) {
-//   try {
-//     const { userId } = await auth();
-//     if (!userId) throw new Error("Unauthorized");
-//     const user = await db.user.findUnique({
-//       where: { clerkUserId: userId },
-//     });
-//     if (!user) {
-//       throw new Error("User not found");
-//     }
-
-//     const transactions = await db.transaction.findMany({
-//       where: {
-//         id: { in: transactionIds },
-//         userId: user.id,
-//       },
-//     });
-
-//     const accountBalanceChanges = transactions.reduce((acc, transaction) => {
-//       const change =
-//         transaction.type === "EXPENSE"
-//           ? transaction.amount
-//           : -transaction.amount;
-
-//       acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
-//       return acc;
-//     }, {});
-
-//     await  db.$transaction(async(tx)=>{
-//         await tx.transaction.deleteMany({
-//             where: {
-//             id: {in ; transactionIds},
-//             userId : user.id
-//         }
-//         })
-//         for(const [accountId, balanceChange] of Object.entries(
-//             accountBalanceChanges
-//         )){
-//             await tx.account.update({
-//                 where:{
-//                     id: accountId
-//                 },
-//                 data:{
-//                     balance:{
-//                         increment: balanceChange
-//                     }
-//                 }
-//             })
-//         }
-
-//     })
-//     revalidatePath("/account/[id]")
-//     revalidatePath("/dashboard")
-
-//     return {success : true}
-
-//   } catch (error) {}
-// }
-
 export async function bulkDeleteTransactions(transactionIds: string[]) {
   try {
     const { userId } = await auth();
@@ -190,7 +137,6 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
       throw new Error("User not found");
     }
 
-    // ✅ Fetch transactions to calculate balance rollback
     const transactions = await db.transaction.findMany({
       where: {
         id: { in: transactionIds },
@@ -202,7 +148,6 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
       return { success: false, message: "No transactions found" };
     }
 
-    // ✅ Calculate account balance changes
     const accountBalanceChanges: Record<string, number> = transactions.reduce(
       (acc, transaction) => {
         const amount =
@@ -217,9 +162,7 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
       {} as Record<string, number>
     );
 
-    // ✅ Perform database operations atomically
     await db.$transaction(async (tx) => {
-      // Delete transactions
       await tx.transaction.deleteMany({
         where: {
           id: { in: transactionIds },
@@ -227,7 +170,6 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
         },
       });
 
-      // Update each account balance
       for (const [accountId, balanceChange] of Object.entries(
         accountBalanceChanges
       )) {
@@ -242,7 +184,6 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
       }
     });
 
-    // ✅ Revalidate affected pages
     Object.keys(accountBalanceChanges).forEach((accountId) => {
       revalidatePath(`/account/${accountId}`);
     });
@@ -251,7 +192,7 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     return { success: true };
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    console.error("❌ bulkDeleteTransactions error:", message);
+    console.error("bulkDeleteTransactions error:", message);
     return { success: false, message };
   }
 }

@@ -68,6 +68,7 @@ export async function createAccount(data: CreateAccountInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
+
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
@@ -75,9 +76,8 @@ export async function createAccount(data: CreateAccountInput) {
       throw new Error("User not found");
     }
 
-    //convert balance to float before saving
     const balanceFloat = parseFloat(data.balance);
-    if (isNaN(balanceFloat)) {
+    if (Number.isNaN(balanceFloat)) {
       throw new Error("Invalid balance amount");
     }
 
@@ -114,6 +114,7 @@ export async function createAccount(data: CreateAccountInput) {
         isDefault: shouldBeDefault,
       },
     });
+
     const serializedAccount = serializeTransaction(account);
     revalidatePath("/dashboard");
     return { success: true, data: serializedAccount };
@@ -121,35 +122,6 @@ export async function createAccount(data: CreateAccountInput) {
     throw new Error(getErrorMessage(error));
   }
 }
-
-// export async function getUserAccounts() {
-//   const { userId } = await auth();
-//   if (!userId) throw new Error("Unauthorized");
-//   const user = await db.user.findUnique({
-//     where: { clerkUserId: userId },
-//   });
-//   if (!user) {
-//     throw new Error("User not found");
-//   }
-
-//   const accounts = await db.account.findMany({
-//     where:{
-//         userId: user.id
-//     },
-//     orderBy:{createdAt:"desc"},
-//     include:{
-//         _count:{
-//             select:{
-//                  transactions:true
-//             }
-           
-//         }
-//     }
-//   })
-//   const serializedAccount = accounts.map(serializeTransaction);
-//   return serializedAccount;
-// }
-
 
 export async function getUserAccounts() {
   const { userId } = await auth();
@@ -176,10 +148,7 @@ export async function getUserAccounts() {
       },
     });
 
-    // Serialize accounts before sending to client
-    const serializedAccounts = accounts.map(serializeTransaction);
-
-    return serializedAccounts;
+    return accounts.map(serializeTransaction);
   } catch (error: unknown) {
     console.error(getErrorMessage(error));
   }
@@ -282,7 +251,9 @@ export async function getDashboardOverview() {
       .sort((a, b) => b.amount - a.amount);
 
     const topBreakdown = breakdown.slice(0, 5);
-    const remainder = breakdown.slice(5).reduce((sum, item) => sum + item.amount, 0);
+    const remainder = breakdown
+      .slice(5)
+      .reduce((sum, item) => sum + item.amount, 0);
     if (remainder > 0) {
       topBreakdown.push({
         id: "other",
@@ -337,11 +308,14 @@ export async function getDashboardOverview() {
       point.net = point.income - point.expense;
     });
 
-    const currentMonthExpense = monthlyCashflow[monthlyCashflow.length - 1]?.expense ?? 0;
-    const previousMonthExpense = monthlyCashflow[monthlyCashflow.length - 2]?.expense ?? 0;
+    const currentMonthExpense =
+      monthlyCashflow[monthlyCashflow.length - 1]?.expense ?? 0;
+    const previousMonthExpense =
+      monthlyCashflow[monthlyCashflow.length - 2]?.expense ?? 0;
     const expenseChange =
       previousMonthExpense > 0
-        ? ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100
+        ? ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) *
+          100
         : null;
 
     const savingsRate =

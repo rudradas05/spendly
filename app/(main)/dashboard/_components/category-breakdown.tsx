@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
@@ -19,20 +19,18 @@ const CategoryBreakdown = ({ data }: CategoryBreakdownProps) => {
 
   if (!data.length) {
     return (
-      <div className="rounded-2xl border bg-white/70 p-6 text-sm text-muted-foreground shadow-sm backdrop-blur">
+      <div className="surface-panel p-6 text-sm text-muted-foreground">
         Spend in a few categories to unlock insights.
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border bg-white/70 p-6 shadow-sm backdrop-blur">
+    <div className="surface-panel p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Categories
-          </p>
-          <h3 className="text-lg font-semibold">Expense Breakdown</h3>
+          <p className="section-kicker">Categories</p>
+          <h3 className="text-lg font-semibold">Expense breakdown</h3>
         </div>
         <div className="text-xs text-muted-foreground">
           {CURRENCY_SYMBOL}
@@ -40,16 +38,16 @@ const CategoryBreakdown = ({ data }: CategoryBreakdownProps) => {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[160px_1fr] items-center">
-        <div className="h-[160px]">
+      <div className="mt-6 grid items-center gap-4 lg:grid-cols-[180px_1fr]">
+        <div className="h-[180px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 dataKey="amount"
                 nameKey="name"
-                innerRadius={45}
-                outerRadius={70}
+                innerRadius={55}
+                outerRadius={80}
                 paddingAngle={3}
               >
                 {data.map((item) => (

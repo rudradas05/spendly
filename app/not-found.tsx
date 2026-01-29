@@ -11,11 +11,9 @@ export default function NotFound() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="rounded-3xl border bg-white/70 px-10 py-12 shadow-lg"
+        className="surface-panel px-10 py-12"
       >
-        <p className="text-xs uppercase tracking-[0.4em] text-emerald-500">
-          Error 404
-        </p>
+        <p className="section-kicker">Error 404</p>
         <h1 className="font-display text-5xl font-semibold text-slate-900 md:text-6xl">
           This page drifted away.
         </h1>

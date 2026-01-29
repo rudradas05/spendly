@@ -1,4 +1,4 @@
-import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
+﻿import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface InsightsPanelProps {
@@ -21,15 +21,13 @@ const InsightsPanel = ({
         } than last month`;
 
   return (
-    <div className="rounded-2xl border bg-white/70 p-6 shadow-sm backdrop-blur">
-      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-        Insights
-      </p>
-      <h3 className="text-lg font-semibold mt-2">Financial Health</h3>
+    <div className="surface-panel p-6">
+      <p className="section-kicker">Insights</p>
+      <h3 className="mt-2 text-lg font-semibold">Financial health</h3>
 
       <div className="mt-6 space-y-4">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
             {trendUp ? (
               <TrendingUp className="h-5 w-5" />
             ) : (
@@ -43,7 +41,7 @@ const InsightsPanel = ({
         </div>
 
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
             <Wallet className="h-5 w-5" />
           </div>
           <div>
@@ -55,7 +53,7 @@ const InsightsPanel = ({
         </div>
 
         <div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+          <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
             <span>Savings rate</span>
             <span>
               {savingsRate !== null ? `${savingsRate.toFixed(0)}%` : "N/A"}
