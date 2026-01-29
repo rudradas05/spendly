@@ -16,25 +16,36 @@ import { toast } from "sonner";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
+type DecimalLike = { toNumber: () => number };
+
 interface AccountCardProps {
   account: {
     id: string;
     name: string;
     type: "CURRENT" | "SAVINGS";
-    balance: number | string;
-    minBalance?: number | null;
+    balance: number | string | DecimalLike;
+    minBalance?: number | string | DecimalLike | null;
     isDefault: boolean;
   };
 }
 
 const AccountCard = ({ account }: AccountCardProps) => {
   const { name, type, balance, id, isDefault, minBalance } = account;
-  const minBalanceValue =
-    typeof minBalance === "number" && !Number.isNaN(minBalance)
-      ? minBalance
-      : null;
+  const toNumber = (
+    value: number | string | DecimalLike | null | undefined
+  ): number => {
+    if (value === null || value === undefined) return 0;
+    if (typeof value === "object" && "toNumber" in value) {
+      return value.toNumber();
+    }
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const balanceValue = toNumber(balance);
+  const minBalanceValue = minBalance ? toNumber(minBalance) : 0;
   const minBalanceLabel =
-    minBalanceValue && minBalanceValue > 0
+    minBalanceValue > 0
       ? `${CURRENCY_SYMBOL}${minBalanceValue.toFixed(2)}`
       : "Not set";
   const minBalanceDotClass =
@@ -107,7 +118,7 @@ const AccountCard = ({ account }: AccountCardProps) => {
           </p>
           <div className="mt-2 text-3xl font-semibold text-slate-900">
             {CURRENCY_SYMBOL}
-            {Number(balance).toFixed(2)}
+            {balanceValue.toFixed(2)}
           </div>
           <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
             <span className="flex items-center gap-2">
