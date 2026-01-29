@@ -201,11 +201,12 @@ const AddTransactionForm = ({
   }, [accountValue, router, updateResult]);
 
   const handleSubmitForm = async (values: TransactionFormValues) => {
+    const parsedValues = transactionSchema.parse(values);
     if (canUpdate && initialData?.id) {
-      await updateFn(initialData.id, values);
+      await updateFn(initialData.id, parsedValues);
       return;
     }
-    await createFn(values);
+    await createFn(parsedValues);
   };
 
   if (accounts.length === 0) {
