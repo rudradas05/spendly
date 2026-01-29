@@ -1,61 +1,119 @@
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import Image from "next/image";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { LayoutDashboard, PenBox } from "lucide-react";
+import { LayoutDashboard, PenBox, Wallet } from "lucide-react";
 import { checkUser } from "@/lib/checkUser";
 
 const Header = async () => {
   await checkUser();
-  return (
-    <div className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b">
-      <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/">
-          <Image
-            src="/logo.png"
-            alt="spendly logo"
-            height={60}
-            width={200}
-            className="h-12 w-auto object-contain"
-          />
-        </Link>
 
-        <div className="flex items-center space-x-4">
-          <SignedIn>
-            <Link
-              href={"/dashboard"}
-              className="text-gray-600 hover:text-blue-600 flex items-center gap-2"
-            >
-              <Button variant="outline" className="cursor-pointer">
-                <LayoutDashboard size={18} />
-                <span className="hidden md:inline">Dashboard</span>
-              </Button>
+  return (
+    <div className="fixed top-0 z-50 w-full">
+      <div className="h-px w-full bg-linear-to-r from-emerald-500/50 via-sky-500/40 to-amber-400/40" />
+      <div className="border-b border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)]">
+        <nav className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="gradient-title text-xl leading-none">Spendly</span>
+              <span className="surface-chip hidden text-[0.6rem] uppercase tracking-[0.35em] text-slate-600 sm:inline-flex">
+                smart finance
+              </span>
             </Link>
-            <Link href={"/transaction/create"}>
-              <Button className="flex items-center gap-2 cursor-pointer">
-                <PenBox size={18} />
-                <span className="hidden md:inline">Add Transaction</span>
+          </div>
+
+          <div className="hidden items-center gap-2 rounded-full border border-white/60 bg-white/70 px-2 py-1 text-sm text-slate-600 shadow-sm lg:flex">
+            <SignedOut>
+              <Link
+                href="/#features"
+                className="rounded-full px-3 py-1 transition hover:bg-emerald-50 hover:text-emerald-700"
+              >
+                Features
+              </Link>
+              <Link
+                href="/#testimonials"
+                className="rounded-full px-3 py-1 transition hover:bg-emerald-50 hover:text-emerald-700"
+              >
+                Stories
+              </Link>
+            </SignedOut>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-2 py-1 shadow-sm">
+            <SignedIn>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="rounded-full px-4 text-slate-600 hover:bg-white/80"
+              >
+                <Link href="/dashboard" className="flex items-center gap-2">
+                  <LayoutDashboard size={18} />
+                  <span className="hidden md:inline">Dashboard</span>
+                </Link>
               </Button>
-            </Link>
-          </SignedIn>
-          <SignedOut>
-            <SignInButton forceRedirectUrl="/dashboard">
-              <Button variant="outline" className="cursor-pointer">
-                Login
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="rounded-full px-4 text-slate-600 hover:bg-white/80"
+              >
+                <Link
+                  href="/dashboard#accounts"
+                  className="flex items-center gap-2"
+                >
+                  <Wallet size={18} />
+                  <span className="hidden md:inline">Accounts</span>
+                </Link>
               </Button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-12 h-12",
-                },
-              }}
-            />
-          </SignedIn>
-        </div>
-      </nav>
+              <Button
+                asChild
+                size="sm"
+                className="gradient rounded-full px-4 text-slate-900 shadow-[0_20px_35px_-25px_rgba(15,23,42,0.55)]"
+              >
+                <Link href="/transaction/create">
+                  <PenBox size={18} />
+                  <span className="hidden md:inline">Add Transaction</span>
+                </Link>
+              </Button>
+            </SignedIn>
+
+            <SignedOut>
+              <SignInButton forceRedirectUrl="/dashboard">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="rounded-full px-4 text-slate-600 hover:bg-white/80"
+                >
+                  Login
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedOut>
+              <SignUpButton>
+                <Button size="sm" className="rounded-full px-4">
+                  Start free
+                </Button>
+              </SignUpButton>
+            </SignedOut>
+
+            <SignedIn>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10 rounded-full ring-2 ring-white",
+                  },
+                }}
+              />
+            </SignedIn>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 };
