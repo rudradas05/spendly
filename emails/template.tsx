@@ -383,7 +383,19 @@ export default function EmailTemplate(props: EmailTemplateProps) {
     );
   }
 
-  return null;
+  return (
+    <Html>
+      <Head />
+      <Body style={styles.body}>
+        <Container style={styles.container}>
+          <Heading style={styles.title}>Spendly</Heading>
+          <Text style={styles.text}>
+            This message could not be rendered. Please try again.
+          </Text>
+        </Container>
+      </Body>
+    </Html>
+  );
 }
 
 const styles = {
