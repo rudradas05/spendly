@@ -32,7 +32,7 @@ interface AccountCardProps {
 const AccountCard = ({ account }: AccountCardProps) => {
   const { name, type, balance, id, isDefault, minBalance } = account;
   const toNumber = (
-    value: number | string | DecimalLike | null | undefined
+    value: number | string | DecimalLike | null | undefined,
   ): number => {
     if (value === null || value === undefined) return 0;
     if (typeof value === "object" && "toNumber" in value) {
@@ -75,10 +75,13 @@ const AccountCard = ({ account }: AccountCardProps) => {
 
   return (
     <Card className="group relative overflow-hidden border border-white/70 bg-white/80 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.5)] transition-all hover:-translate-y-1 hover:shadow-[0_35px_90px_-60px_rgba(15,23,42,0.65)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_55%)] opacity-80" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)] opacity-80" />
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100" />
       <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
-        <Link href={`/account/${id}`} className="flex flex-1 items-center gap-3">
+        <Link
+          href={`/account/${id}`}
+          className="flex flex-1 items-center gap-3"
+        >
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-sm font-semibold text-slate-700 shadow-sm">
             {initials || "AC"}
           </div>
@@ -127,10 +130,11 @@ const AccountCard = ({ account }: AccountCardProps) => {
               />
               Min balance
             </span>
-            <span className="font-medium text-slate-700">{minBalanceLabel}</span>
+            <span className="font-medium text-slate-700">
+              {minBalanceLabel}
+            </span>
           </div>
         </CardContent>
-
       </Link>
     </Card>
   );

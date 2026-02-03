@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Home, LayoutDashboard } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -11,26 +12,43 @@ export default function NotFound() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="surface-panel px-10 py-12"
+        className="surface-panel max-w-lg px-10 py-12"
       >
-        <p className="section-kicker">Error 404</p>
-        <h1 className="font-display text-5xl font-semibold text-slate-900 md:text-6xl">
-          This page drifted away.
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50/80">
+          <span className="gradient-title text-4xl">404</span>
+        </div>
+        <p className="section-kicker">Page not found</p>
+        <h1 className="mt-2 font-display text-4xl font-semibold text-slate-900 md:text-5xl">
+          This page drifted away
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm text-slate-600">
-          The link you followed doesn't exist or was moved. Let's get you back
-          on track.
+        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600">
+          The link you followed doesn&apos;t exist or was moved. Let&apos;s get
+          you back on track.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <Button asChild size="lg">
-            <Link href="/">Return home</Link>
+          <Button
+            asChild
+            size="lg"
+            className="gap-2 shadow-lg transition-all hover:scale-[1.02]"
+          >
+            <Link href="/">
+              <Home className="h-4 w-4" />
+              Return home
+            </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/dashboard">Go to dashboard</Link>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="gap-2 transition-all hover:scale-[1.02]"
+          >
+            <Link href="/dashboard">
+              <LayoutDashboard className="h-4 w-4" />
+              Go to dashboard
+            </Link>
           </Button>
         </div>
       </motion.div>
     </div>
   );
 }
-

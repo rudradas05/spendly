@@ -124,7 +124,9 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
       <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent className="border-white/70 bg-white/85 backdrop-blur-xl shadow-[0_35px_90px_-60px_rgba(15,23,42,0.6)] data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:w-[min(760px,94vw)] data-[vaul-drawer-direction=bottom]:-translate-x-1/2 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border data-[vaul-drawer-direction=bottom]:mb-6">
         <DrawerHeader className="px-6 pt-6">
-          <DrawerTitle className="text-slate-900">Create new account</DrawerTitle>
+          <DrawerTitle className="text-slate-900">
+            Create new account
+          </DrawerTitle>
           <DrawerDescription className="text-sm text-muted-foreground">
             Set up a new account with live preview and smart defaults.
           </DrawerDescription>
@@ -249,7 +251,10 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
                   <p className="section-kicker">Live preview</p>
                   <h3 className="text-lg font-semibold">Account card</h3>
                 </div>
-                <Badge variant="outline" className="gap-2 border-emerald-200/70">
+                <Badge
+                  variant="outline"
+                  className="gap-2 border-emerald-200/70"
+                >
                   <Sparkles className="h-3 w-3 text-emerald-500" />
                   Live
                 </Badge>
@@ -260,8 +265,8 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg",
-                        accentClass
+                        "flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-lg",
+                        accentClass,
                       )}
                     >
                       {typeValue === "SAVINGS" ? (

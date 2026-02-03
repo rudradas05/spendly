@@ -217,14 +217,17 @@ const AddTransactionForm = ({
 
   if (accounts.length === 0) {
     return (
-      <div className="surface-panel p-8 text-center">
+      <div className="surface-panel animate-fade-in p-8 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50/70">
+          <Loader2 className="h-8 w-8 text-emerald-600" />
+        </div>
         <h2 className="text-lg font-semibold text-slate-900">
           Create an account first
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           You need at least one account before adding a transaction.
         </p>
-        <Button asChild className="mt-4">
+        <Button asChild className="mt-6">
           <Link href="/dashboard">Go to dashboard</Link>
         </Button>
       </div>
@@ -232,14 +235,19 @@ const AddTransactionForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
-      <div className="surface-panel p-4 md:p-5">
+    <form
+      onSubmit={handleSubmit(handleSubmitForm)}
+      className="animate-fade-in space-y-6"
+    >
+      <div className="surface-panel p-5 md:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <p className="section-kicker">Details</p>
           {isEditing && <span className="surface-chip">Editing</span>}
         </div>
-        <div className="mt-1 flex flex-col gap-2">
-          <h2 className="text-base font-semibold">Transaction basics</h2>
+        <div className="mt-1 flex flex-col gap-1">
+          <h2 className="text-base font-semibold text-slate-900">
+            Transaction basics
+          </h2>
           <p className="text-xs text-muted-foreground">
             Capture the essentials and let Spendly handle the rest.
           </p>
@@ -338,9 +346,7 @@ const AddTransactionForm = ({
               </SelectContent>
             </Select>
             {errors.accountId && (
-              <p className="text-xs text-red-500">
-                {errors.accountId.message}
-              </p>
+              <p className="text-xs text-red-500">{errors.accountId.message}</p>
             )}
           </div>
 
@@ -388,7 +394,7 @@ const AddTransactionForm = ({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !dateValue && "text-muted-foreground"
+                      !dateValue && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -440,7 +446,7 @@ const AddTransactionForm = ({
                         value as TransactionFormValues["recurringInterval"],
                         {
                           shouldValidate: true,
-                        }
+                        },
                       )
                     }
                   >
@@ -466,8 +472,12 @@ const AddTransactionForm = ({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={isSubmitting}>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="min-w-[140px] shadow-[0_18px_30px_-22px_rgba(15,23,42,0.55)] transition-all hover:scale-[1.02]"
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -481,13 +491,16 @@ const AddTransactionForm = ({
           </Button>
 
           {isEditing && accountValue && (
-            <Button asChild variant="outline">
+            <Button
+              asChild
+              variant="outline"
+              className="transition-all hover:scale-[1.02]"
+            >
               <Link href={`/account/${accountValue}`}>Cancel</Link>
             </Button>
           )}
         </div>
       </div>
-
     </form>
   );
 };

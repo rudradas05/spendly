@@ -65,12 +65,12 @@ export function BudgetProgress({
     percentUsed >= 90
       ? "bg-rose-500"
       : percentUsed >= 75
-      ? "bg-amber-500"
-      : "bg-emerald-500";
+        ? "bg-amber-500"
+        : "bg-emerald-500";
 
   return (
     <Card className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.2),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_55%)]" />
       <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex-1">
           <CardTitle className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -110,9 +110,9 @@ export function BudgetProgress({
                 <CardDescription>
                   {initialBudget
                     ? `${CURRENCY_SYMBOL}${currentExpenses.toFixed(
-                        2
+                        2,
                       )} of ${CURRENCY_SYMBOL}${initialBudget.amount.toFixed(
-                        2
+                        2,
                       )} spent across all accounts`
                     : "No budget set"}
                 </CardDescription>

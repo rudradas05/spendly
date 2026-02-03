@@ -2,7 +2,14 @@
 import CreateAccountDrawer from "@/components/create-account-drawer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  Plus,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  PiggyBank,
+} from "lucide-react";
 import AccountCard from "./_components/account-card";
 import { getCurrentBudget } from "@/actions/budget";
 import { BudgetProgress } from "./_components/budget-progress";
@@ -23,39 +30,50 @@ export default async function DashboardPage() {
 
   const { totals, cashflow, categories, insights, recent } = overview;
   const primaryAccountHref = defaultAccount ? "/account" : "/dashboard";
+  const isPositiveNet = totals.net >= 0;
 
   return (
-    <div className="space-y-12 px-5 pb-16">
-      <section className="surface-panel overflow-hidden border-transparent bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.22),_transparent_55%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.18),_transparent_55%),linear-gradient(135deg,_rgba(15,23,42,0.96),_rgba(15,23,42,0.92))] p-8 text-white md:p-10">
+    <div className="space-y-10 px-5 pb-16">
+      {/* Hero Section */}
+      <section className="animate-fade-in surface-panel overflow-hidden border-transparent bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.22),transparent_55%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.92))] p-8 text-white md:p-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
+            <p className="text-xs uppercase tracking-[0.35em] text-emerald-300/90">
               Dashboard overview
             </p>
-            <h1 className="font-display text-4xl font-semibold sm:text-5xl">
+            <h1 className="mt-1 font-display text-4xl font-semibold sm:text-5xl">
               Your money, in motion
             </h1>
-            <p className="mt-3 max-w-lg text-sm text-slate-200">
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-300">
               Track balances, monitor budgets, and stay ahead with insights
               tailored to your spending behavior.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3 text-xs text-slate-200">
-              <span className="surface-chip border-white/20 bg-white/10 text-slate-100">
-                Accounts: {totals.totalAccounts}
+            <div className="mt-5 flex flex-wrap gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-slate-100 backdrop-blur-sm">
+                <Wallet className="h-3.5 w-3.5" />
+                {totals.totalAccounts}{" "}
+                {totals.totalAccounts === 1 ? "Account" : "Accounts"}
               </span>
-              <span className="surface-chip border-white/20 bg-white/10 text-slate-100">
-                Budget cadence: monthly
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-slate-100 backdrop-blur-sm">
+                <PiggyBank className="h-3.5 w-3.5" />
+                Monthly budget
               </span>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild className="bg-white text-slate-900 hover:bg-slate-100">
-              <Link href="/transaction/create">Add Transaction</Link>
+            <Button
+              asChild
+              className="bg-white text-slate-900 shadow-lg transition-all hover:scale-[1.02] hover:bg-slate-100"
+            >
+              <Link href="/transaction/create">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Transaction
+              </Link>
             </Button>
             <Button
               asChild
               variant="outline"
-              className="border-white/40 bg-white/10 text-white hover:bg-white/15"
+              className="border-white/30 bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/20"
             >
               <Link href={primaryAccountHref}>
                 View account <ArrowRight className="ml-2 h-4 w-4" />
@@ -64,46 +82,79 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Stats Grid */}
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
-              Total Balance
-            </p>
-            <p className="mt-2 text-2xl font-semibold">
+          <div className="group rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-sm transition-all hover:bg-white/15">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/90">
+                Total Balance
+              </p>
+              <Wallet className="h-4 w-4 text-emerald-400/70" />
+            </div>
+            <p className="mt-3 text-2xl font-semibold tabular-nums">
               {CURRENCY_SYMBOL}
-              {totals.totalBalance.toFixed(2)}
+              {totals.totalBalance.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
-              Income (MTD)
-            </p>
-            <p className="mt-2 text-2xl font-semibold">
-              {CURRENCY_SYMBOL}
-              {totals.monthIncome.toFixed(2)}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
-              Expenses (MTD)
-            </p>
-            <p className="mt-2 text-2xl font-semibold">
-              {CURRENCY_SYMBOL}
-              {totals.monthExpense.toFixed(2)}
+          <div className="group rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-sm transition-all hover:bg-white/15">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/90">
+                Income (MTD)
+              </p>
+              <TrendingUp className="h-4 w-4 text-emerald-400/70" />
+            </div>
+            <p className="mt-3 text-2xl font-semibold tabular-nums text-emerald-300">
+              +{CURRENCY_SYMBOL}
+              {totals.monthIncome.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
-              Net (MTD)
+          <div className="group rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-sm transition-all hover:bg-white/15">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/90">
+                Expenses (MTD)
+              </p>
+              <TrendingDown className="h-4 w-4 text-rose-400/70" />
+            </div>
+            <p className="mt-3 text-2xl font-semibold tabular-nums text-rose-300">
+              -{CURRENCY_SYMBOL}
+              {totals.monthExpense.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
-            <p className="mt-2 text-2xl font-semibold">
+          </div>
+          <div className="group rounded-2xl border border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-sm transition-all hover:bg-white/15">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/90">
+                Net (MTD)
+              </p>
+              {isPositiveNet ? (
+                <TrendingUp className="h-4 w-4 text-emerald-400/70" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-rose-400/70" />
+              )}
+            </div>
+            <p
+              className={`mt-3 text-2xl font-semibold tabular-nums ${isPositiveNet ? "text-emerald-300" : "text-rose-300"}`}
+            >
+              {isPositiveNet ? "+" : ""}
               {CURRENCY_SYMBOL}
-              {totals.net.toFixed(2)}
+              {totals.net.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </p>
           </div>
         </div>
       </section>
 
+      {/* Charts and Insights Section */}
       <section className="grid gap-6 xl:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
           <CashflowChart data={cashflow} />
@@ -125,28 +176,39 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section id="accounts" className="space-y-4 scroll-mt-28">
+      {/* Accounts Section */}
+      <section id="accounts" className="space-y-5 scroll-mt-28">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-semibold">Accounts</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="font-display text-2xl font-semibold text-slate-900">
+              Accounts
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Manage balances and defaults across your accounts.
             </p>
           </div>
         </div>
 
         {accounts.length === 0 && (
-          <div className="surface-panel p-6 text-sm text-muted-foreground">
-            Create your first account to start tracking transactions.
+          <div className="surface-panel p-8 text-center">
+            <Wallet className="mx-auto h-12 w-12 text-muted-foreground/50" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Create your first account to start tracking transactions.
+            </p>
           </div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <CreateAccountDrawer>
-            <Card className="cursor-pointer border-dashed border-emerald-200/70 bg-white/60 transition-all hover:-translate-y-1 hover:shadow-xl">
-              <CardContent className="flex h-full flex-col items-center justify-center pt-5 text-muted-foreground">
-                <Plus className="mb-2 h-10 w-10" />
-                <p>Add New Account</p>
+            <Card className="group cursor-pointer border-2 border-dashed border-emerald-200/70 bg-white/60 transition-all hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+              <CardContent className="flex h-full min-h-40 flex-col items-center justify-center pt-5 text-muted-foreground transition-colors group-hover:text-emerald-600">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-200/60 bg-emerald-50/70 transition-all group-hover:scale-105 group-hover:bg-emerald-100">
+                  <Plus className="h-7 w-7 text-emerald-600" />
+                </div>
+                <p className="font-medium">Add New Account</p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  Create a checking or savings account
+                </p>
               </CardContent>
             </Card>
           </CreateAccountDrawer>
