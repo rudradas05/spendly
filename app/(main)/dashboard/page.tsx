@@ -35,28 +35,24 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10 px-5 pb-16">
       {/* Hero Section */}
-      <section className="animate-fade-in surface-panel overflow-hidden border-transparent bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.22),transparent_55%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.92))] p-8 text-white md:p-10">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <section className="animate-fade-in surface-panel overflow-hidden border-transparent bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.22),transparent_55%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(15,23,42,0.92))] p-6 text-white sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-emerald-300/90">
-              Dashboard overview
+              Dashboard
             </p>
-            <h1 className="mt-1 font-display text-4xl font-semibold sm:text-5xl">
+            <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">
               Your money, in motion
             </h1>
-            <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-300">
-              Track balances, monitor budgets, and stay ahead with insights
-              tailored to your spending behavior.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs">
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-slate-100 backdrop-blur-sm">
                 <Wallet className="h-3.5 w-3.5" />
                 {totals.totalAccounts}{" "}
-                {totals.totalAccounts === 1 ? "Account" : "Accounts"}
+                {totals.totalAccounts === 1 ? "account" : "accounts"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-slate-100 backdrop-blur-sm">
                 <PiggyBank className="h-3.5 w-3.5" />
-                Monthly budget
+                Budget tracking
               </span>
             </div>
           </div>

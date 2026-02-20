@@ -7,7 +7,7 @@ import {
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { LayoutDashboard, PenBox, Wallet, Menu } from "lucide-react";
+import { LayoutDashboard, PenBox, Wallet } from "lucide-react";
 import { checkUser } from "@/lib/checkUser";
 
 const Header = async () => {
@@ -66,7 +66,7 @@ const Header = async () => {
                 asChild
                 variant="ghost"
                 size="sm"
-                className="hidden rounded-full px-4 text-slate-600 transition-all hover:bg-emerald-50 hover:text-emerald-700 sm:flex"
+                className="rounded-full px-4 text-slate-600 transition-all hover:bg-emerald-50 hover:text-emerald-700 sm:flex hidden"
               >
                 <Link
                   href="/dashboard#accounts"
@@ -101,8 +101,6 @@ const Header = async () => {
                   Login
                 </Button>
               </SignInButton>
-            </SignedOut>
-            <SignedOut>
               <SignUpButton>
                 <Button
                   size="sm"

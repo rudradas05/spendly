@@ -27,9 +27,14 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
           <p className="section-kicker">Activity</p>
           <h3 className="text-lg font-semibold">Recent transactions</h3>
         </div>
-        <Button asChild size="sm" variant="outline">
-          <Link href="/transaction/create">Add</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild size="sm" variant="ghost" className="text-muted-foreground">
+            <Link href="/account">View all</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/transaction/create">Add</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 space-y-4">
@@ -45,9 +50,10 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
             )}`;
 
             return (
-              <div
+              <Link
+                href={`/transaction/create?edit=${transaction.id}`}
                 key={transaction.id}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-4 py-3 transition-colors hover:bg-white/80"
+                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-4 py-3 transition-colors hover:bg-white/80 hover:shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -87,7 +93,7 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
                     {transaction.category}
                   </Badge>
                 </div>
-              </div>
+              </Link>
             );
           })
         )}

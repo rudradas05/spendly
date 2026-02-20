@@ -354,9 +354,16 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center text-muted-foreground"
+                  className="h-24 text-center"
                 >
-                  No Transactions Found
+                  <div className="flex flex-col items-center gap-2 py-4">
+                    <Search className="h-8 w-8 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      {searchItem || typeFilter || recurringFilter
+                        ? "No transactions match your filters"
+                        : "No transactions yet. Add one to start tracking."}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -383,7 +390,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
 
                   <TableCell className="capitalize">
                     <span
-                      className="rounded px-2 py-1 text-sm text-white transition-transform hover:scale-105"
+                      className="rounded-lg px-2.5 py-1 text-xs font-medium text-white shadow-sm transition-transform hover:scale-[1.03]"
                       style={{
                         backgroundColor:
                           categoryColors[transaction.category] ?? "#6b7280",
@@ -488,6 +495,9 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
 
       <div className="surface-panel flex items-center justify-between px-4 py-3 text-sm">
         <span className="text-muted-foreground">
+          {filteredAndSortedTransactions.length} transaction{filteredAndSortedTransactions.length !== 1 ? "s" : ""}
+          {(searchItem || typeFilter || recurringFilter) && " (filtered)"}
+          {" · "}
           Page {safePage} of {totalPages}
         </span>
         <div className="flex items-center gap-2">

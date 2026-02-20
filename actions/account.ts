@@ -196,3 +196,126 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     return { success: false, message };
   }
 }
+
+interface UpdateAccountInput {
+  name?: string;
+  type?: "CURRENT" | "SAVINGS";
+  minBalance?: string;
+}
+
+export async function updateAccount(
+  accountId: string,
+  data: UpdateAccountInput
+) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    const existing = await db.account.findFirst({
+      where: { id: accountId, userId: user.id },
+    });
+    if (!existing) throw new Error("Account not found");
+
+    const updateData: Record<string, unknown> = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.type !== undefined) updateData.type = data.type;
+    if (data.minBalance !== undefined) {
+      const minBal = parseFloat(data.minBalance);
+      if (Number.isNaN(minBal) || minBal < 0) {
+        throw new Error("Invalid minimum balance");
+      }
+      updateData.minBalance = minBal;
+    }
+
+    const account = await db.account.update({
+      where: { id: accountId },
+      data: updateData,
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/account/${accountId}`);
+    return { success: true, data: serializeTransaction(account) };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+export async function deleteAccount(accountId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    const account = await db.account.findFirst({
+      where: { id: accountId, userId: user.id },
+    });
+    if (!account) throw new Error("Account not found");
+
+    // Cascade deletes transactions automatically via Prisma schema
+    await db.account.delete({ where: { id: accountId } });
+
+    // If deleted account was default, set another account as default
+    if (account.isDefault) {
+      const nextAccount = await db.account.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "asc" },
+      });
+      if (nextAccount) {
+        await db.account.update({
+          where: { id: nextAccount.id },
+          data: { isDefault: true },
+        });
+      }
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+export async function exportTransactionsCSV(accountId: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) throw new Error("User not found");
+
+    const account = await db.account.findFirst({
+      where: { id: accountId, userId: user.id },
+      include: {
+        transactions: { orderBy: { date: "desc" } },
+      },
+    });
+    if (!account) throw new Error("Account not found");
+
+    const header = "Date,Description,Category,Type,Amount,Status";
+    const rows = account.transactions.map((t) => {
+      const date = new Date(t.date).toISOString().split("T")[0];
+      const desc = (t.description ?? "").replace(/,/g, ";");
+      const amount =
+        t.amount && typeof t.amount === "object" && "toNumber" in t.amount
+          ? (t.amount as { toNumber: () => number }).toNumber()
+          : Number(t.amount);
+      return `${date},"${desc}",${t.category},${t.type},${amount.toFixed(2)},${t.status}`;
+    });
+
+    const csv = [header, ...rows].join("\n");
+    return { success: true, data: csv, accountName: account.name };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+}

@@ -256,22 +256,38 @@ const AddTransactionForm = ({
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Type</label>
-            <Select
-              value={type}
-              onValueChange={(value) =>
-                setValue("type", value as TransactionFormValues["type"], {
-                  shouldValidate: true,
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EXPENSE">Expense</SelectItem>
-                <SelectItem value="INCOME">Income</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setValue("type", "EXPENSE", { shouldValidate: true })
+                }
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all",
+                  type === "EXPENSE"
+                    ? "border-rose-300 bg-rose-50 text-rose-700 shadow-sm ring-2 ring-rose-200"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-rose-50/50 hover:text-rose-600"
+                )}
+              >
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Expense
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setValue("type", "INCOME", { shouldValidate: true })
+                }
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all",
+                  type === "INCOME"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm ring-2 ring-emerald-200"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-emerald-50/50 hover:text-emerald-600"
+                )}
+              >
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Income
+              </button>
+            </div>
             {errors.type && (
               <p className="text-xs text-red-500">{errors.type.message}</p>
             )}
@@ -293,23 +309,33 @@ const AddTransactionForm = ({
               />
             </div>
             <div className="flex flex-wrap gap-2">
-              {quickAmounts.map((value) => (
-                <Button
-                  key={value}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 rounded-full px-2 text-xs"
-                  onClick={() =>
-                    setValue("amount", value.toString(), {
-                      shouldValidate: true,
-                    })
-                  }
-                >
-                  {CURRENCY_SYMBOL}
-                  {value}
-                </Button>
-              ))}
+              {quickAmounts.map((value) => {
+                const currentAmount = watch("amount");
+                const isActive = currentAmount === value.toString();
+                return (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-7 rounded-full px-2.5 text-xs transition-all",
+                      isActive &&
+                        (type === "EXPENSE"
+                          ? "border-rose-300 bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                          : "border-emerald-300 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200")
+                    )}
+                    onClick={() =>
+                      setValue("amount", value.toString(), {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    {CURRENCY_SYMBOL}
+                    {value}
+                  </Button>
+                );
+              })}
             </div>
             {errors.amount && (
               <p className="text-xs text-red-500">{errors.amount.message}</p>
@@ -364,7 +390,13 @@ const AddTransactionForm = ({
               <SelectContent>
                 {availableCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
-                    {category.name}
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      {category.name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

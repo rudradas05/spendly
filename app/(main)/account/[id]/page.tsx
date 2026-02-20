@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import TransactionTable from "../_components/transaction-table";
 import { BarLoader } from "react-spinners";
 import { AccountChart } from "../_components/account-chart";
+import { AccountActions } from "../_components/account-actions";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -65,13 +66,13 @@ const AccountsPage = async ({ params }: AccountsPageProps) => {
     <div className="space-y-8 px-5 pb-16">
       {/* Header Section */}
       <section className="animate-fade-in surface-panel p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="section-kicker">Account overview</p>
-            <h1 className="mt-1 font-display text-4xl font-semibold text-slate-900 sm:text-5xl">
+            <h1 className="mt-1 font-display text-3xl font-semibold text-slate-900 sm:text-4xl">
               {account.name}
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="surface-chip">
                 {account.type.charAt(0) + account.type.slice(1).toLowerCase()}
               </span>
@@ -89,32 +90,36 @@ const AccountsPage = async ({ params }: AccountsPageProps) => {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               asChild
+              size="sm"
               className="shadow-lg transition-all hover:scale-[1.02]"
             >
               <Link href="/transaction/create">
                 <Plus className="mr-2 h-4 w-4" /> Add Transaction
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="transition-all hover:scale-[1.02]"
-            >
-              <Link href="/dashboard">Back to dashboard</Link>
-            </Button>
+            <AccountActions
+              accountId={id}
+              accountName={account.name}
+              accountType={account.type as "CURRENT" | "SAVINGS"}
+              minBalance={minBalanceValue}
+            />
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <div className="surface-panel px-6 py-5 text-left transition-all hover:shadow-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
-              Current balance
-            </p>
+        {/* Stats Grid */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="group rounded-2xl border border-border/60 bg-background/70 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-transform group-hover:scale-105">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Balance</p>
+            </div>
             <div
-              className={`mt-2 text-2xl font-semibold tabular-nums ${isLowBalance ? "text-amber-600" : "text-slate-900"}`}
+              className={`mt-3 text-2xl font-semibold tabular-nums ${isLowBalance ? "text-amber-600" : "text-slate-900"}`}
             >
               {CURRENCY_SYMBOL}
               {currentBalance.toLocaleString(undefined, {
@@ -127,123 +132,65 @@ const AccountsPage = async ({ params }: AccountsPageProps) => {
                 ? `Min alert: ${CURRENCY_SYMBOL}${minBalanceValue.toFixed(2)}`
                 : "Min alert: Not set"}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {account._count.transactions} total transactions
-            </p>
           </div>
-          <div className="surface-panel px-6 py-5 transition-all hover:shadow-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
-              Monthly net
-            </p>
-            <div
-              className={`mt-2 flex items-center gap-2 text-2xl font-semibold tabular-nums ${
-                isPositiveNet ? "text-emerald-600" : "text-rose-600"
-              }`}
-            >
-              {isPositiveNet ? (
-                <TrendingUp className="h-5 w-5" />
-              ) : (
-                <TrendingDown className="h-5 w-5" />
-              )}
-              {isPositiveNet ? "+" : ""}
-              {CURRENCY_SYMBOL}
-              {net.toLocaleString(undefined, {
+
+          <div className="group rounded-2xl border border-border/60 bg-background/70 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center gap-3 text-emerald-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 transition-transform group-hover:scale-105">
+                <ArrowUpRight className="h-5 w-5" />
+              </div>
+              <p className="text-xs uppercase tracking-[0.3em]">Income</p>
+            </div>
+            <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900">
+              +{CURRENCY_SYMBOL}
+              {totalIncome.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
-            </div>
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Income minus expenses
+              All time total income
             </p>
           </div>
-          <div className="surface-panel px-6 py-5 transition-all hover:shadow-md">
-            <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
-              Recurring
-            </p>
-            <div className="mt-2 flex items-center gap-2 text-2xl font-semibold text-slate-900">
-              <Repeat className="h-5 w-5 text-amber-500" />
-              {recurringCount}
+
+          <div className="group rounded-2xl border border-border/60 bg-background/70 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center gap-3 text-rose-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 transition-transform group-hover:scale-105">
+                <ArrowDownRight className="h-5 w-5" />
+              </div>
+              <p className="text-xs uppercase tracking-[0.3em]">Expenses</p>
             </div>
+            <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900">
+              -{CURRENCY_SYMBOL}
+              {totalExpense.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Active recurring payments
+              All time total expenses
+            </p>
+          </div>
+
+          <div className="group rounded-2xl border border-border/60 bg-background/70 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-center gap-3 text-amber-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 transition-transform group-hover:scale-105">
+                <Repeat className="h-5 w-5" />
+              </div>
+              <p className="text-xs uppercase tracking-[0.3em]">Recurring</p>
+            </div>
+            <p className="mt-3 text-2xl font-semibold text-slate-900">
+              {recurringCount}{" "}
+              <span className="text-sm font-normal text-muted-foreground">
+                active
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {account._count.transactions} total transactions
             </p>
           </div>
         </div>
       </section>
-
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="surface-panel group p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
-          <div className="flex items-center gap-3 text-emerald-600">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 transition-transform group-hover:scale-105">
-              <ArrowUpRight className="h-5 w-5" />
-            </div>
-            <p className="text-xs uppercase tracking-[0.3em]">Total Income</p>
-          </div>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900">
-            +{CURRENCY_SYMBOL}
-            {totalIncome.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
-        </div>
-        <div className="surface-panel group p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
-          <div className="flex items-center gap-3 text-rose-500">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 transition-transform group-hover:scale-105">
-              <ArrowDownRight className="h-5 w-5" />
-            </div>
-            <p className="text-xs uppercase tracking-[0.3em]">Total Expenses</p>
-          </div>
-          <p className="mt-3 text-2xl font-semibold tabular-nums text-slate-900">
-            -{CURRENCY_SYMBOL}
-            {totalExpense.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
-        </div>
-        <div className="surface-panel group p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-105 ${isPositiveNet ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"}`}
-            >
-              {isPositiveNet ? (
-                <TrendingUp className="h-5 w-5" />
-              ) : (
-                <TrendingDown className="h-5 w-5" />
-              )}
-            </div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-600">
-              Net Balance
-            </p>
-          </div>
-          <p
-            className={`mt-3 text-2xl font-semibold tabular-nums ${isPositiveNet ? "text-emerald-600" : "text-rose-600"}`}
-          >
-            {isPositiveNet ? "+" : ""}
-            {CURRENCY_SYMBOL}
-            {net.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </p>
-        </div>
-        <div className="surface-panel group p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
-          <div className="flex items-center gap-3 text-amber-600">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 transition-transform group-hover:scale-105">
-              <Repeat className="h-5 w-5" />
-            </div>
-            <p className="text-xs uppercase tracking-[0.3em]">Recurring</p>
-          </div>
-          <p className="mt-3 text-2xl font-semibold text-slate-900">
-            {recurringCount}{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              active
-            </span>
-          </p>
-        </div>
-      </div>
 
       {/* Charts */}
       <Suspense
