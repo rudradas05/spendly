@@ -223,7 +223,7 @@ export async function getDashboardOverview() {
 
     const recentTransactions = await db.transaction.findMany({
       where: { userId: user.id },
-      orderBy: { date: "desc" },
+      orderBy: [{ createdAt: "desc" }],
       take: 8,
       select: {
         id: true,

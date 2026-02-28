@@ -18,6 +18,7 @@ import CashflowChart from "./_components/cashflow-chart";
 import CategoryBreakdown from "./_components/category-breakdown";
 import InsightsPanel from "./_components/insights-panel";
 import RecentTransactions from "./_components/recent-transactions";
+import { GoalsSummary } from "./_components/goals-summary";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
 
 export default async function DashboardPage() {
@@ -163,6 +164,7 @@ export default async function DashboardPage() {
               currentExpenses={budgetData?.currentExpenses || 0}
             />
           )}
+          <GoalsSummary />
           <CategoryBreakdown data={categories} />
           <InsightsPanel
             expenseChange={insights.expenseChange}

@@ -100,8 +100,9 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
   const [recurringFilter, setRecurringFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { loading: deleteLoading, fn: deleteFn } =
-    useFetch(bulkDeleteTransactions);
+  const { loading: deleteLoading, fn: deleteFn } = useFetch(
+    bulkDeleteTransactions,
+  );
 
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
@@ -109,7 +110,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
     if (searchItem) {
       const searchLower = searchItem.toLowerCase();
       result = result.filter((transaction) =>
-        transaction.description?.toLowerCase().includes(searchLower)
+        transaction.description?.toLowerCase().includes(searchLower),
       );
     }
 
@@ -117,7 +118,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
       result = result.filter((transaction) =>
         recurringFilter === "recurring"
           ? transaction.isRecurring
-          : !transaction.isRecurring
+          : !transaction.isRecurring,
       );
     }
 
@@ -146,7 +147,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredAndSortedTransactions.length / ITEMS_PER_PAGE)
+    Math.ceil(filteredAndSortedTransactions.length / ITEMS_PER_PAGE),
   );
 
   const safePage = Math.min(currentPage, totalPages);
@@ -155,7 +156,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
     const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedTransactions.slice(
       startIndex,
-      startIndex + ITEMS_PER_PAGE
+      startIndex + ITEMS_PER_PAGE,
     );
   }, [filteredAndSortedTransactions, safePage]);
 
@@ -177,7 +178,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
     setSelectedIds((current) =>
       current.includes(id)
         ? current.filter((item) => item !== id)
-        : [...current, id]
+        : [...current, id],
     );
   };
 
@@ -185,13 +186,13 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
     setSelectedIds((current) =>
       current.length === paginatedTransactions.length
         ? []
-        : paginatedTransactions.map((transaction) => transaction.id)
+        : paginatedTransactions.map((transaction) => transaction.id),
     );
   };
 
   const handleBulkDelete = async () => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${selectedIds.length} transaction(s)?`
+      `Are you sure you want to delete ${selectedIds.length} transaction(s)?`,
     );
     if (!confirmed) return;
     const result = await deleteFn(selectedIds);
@@ -243,9 +244,9 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                 setSelectedIds([]);
               }}
             >
-            <SelectTrigger className="w-full border-border/60 bg-background/70 sm:w-[140px]">
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
+              <SelectTrigger className="w-full border-border/60 bg-background/70 sm:w-[140px]">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="INCOME">Income</SelectItem>
                 <SelectItem value="EXPENSE">Expense</SelectItem>
@@ -260,12 +261,14 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                 setSelectedIds([]);
               }}
             >
-            <SelectTrigger className="w-full border-border/60 bg-background/70 sm:w-44">
-              <SelectValue placeholder="All Transactions" />
-            </SelectTrigger>
+              <SelectTrigger className="w-full border-border/60 bg-background/70 sm:w-44">
+                <SelectValue placeholder="All Transactions" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="recurring">Recurring Only</SelectItem>
-                <SelectItem value="non-recurring">Non-recurring Only</SelectItem>
+                <SelectItem value="non-recurring">
+                  Non-recurring Only
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -352,10 +355,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
           <TableBody>
             {paginatedTransactions.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={7} className="h-24 text-center">
                   <div className="flex flex-col items-center gap-2 py-4">
                     <Search className="h-8 w-8 text-muted-foreground/40" />
                     <p className="text-sm text-muted-foreground">
@@ -370,10 +370,10 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
               paginatedTransactions.map((transaction) => (
                 <TableRow
                   key={transaction.id}
-                className="cursor-pointer transition-colors hover:bg-white/70"
-                onClick={() =>
-                  router.push(`/transaction/create?edit=${transaction.id}`)
-                }
+                  className="cursor-pointer transition-colors hover:bg-white/70"
+                  onClick={() =>
+                    router.push(`/transaction/create?edit=${transaction.id}`)
+                  }
                 >
                   <TableCell onClick={(event) => event.stopPropagation()}>
                     <Checkbox
@@ -436,7 +436,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                                 {transaction.nextRecurringDate
                                   ? format(
                                       new Date(transaction.nextRecurringDate),
-                                      "PP"
+                                      "PP",
                                     )
                                   : "N/A"}
                               </div>
@@ -447,7 +447,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="gap-1 border-slate-200 bg-slate-100/80 text-slate-600"
+                        className="gap-1 border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400"
                       >
                         <Clock className="h-3 w-3" />
                         One-time
@@ -469,7 +469,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                         <DropdownMenuItem
                           onClick={() =>
                             router.push(
-                              `/transaction/create?edit=${transaction.id}`
+                              `/transaction/create?edit=${transaction.id}`,
                             )
                           }
                           className="cursor-pointer"
@@ -495,7 +495,8 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
 
       <div className="surface-panel flex items-center justify-between px-4 py-3 text-sm">
         <span className="text-muted-foreground">
-          {filteredAndSortedTransactions.length} transaction{filteredAndSortedTransactions.length !== 1 ? "s" : ""}
+          {filteredAndSortedTransactions.length} transaction
+          {filteredAndSortedTransactions.length !== 1 ? "s" : ""}
           {(searchItem || typeFilter || recurringFilter) && " (filtered)"}
           {" · "}
           Page {safePage} of {totalPages}

@@ -73,7 +73,7 @@ export function BudgetProgress({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.2),transparent_55%)]" />
       <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex-1">
-          <CardTitle className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <CardTitle className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
             Monthly budget
           </CardTitle>
           <div className="mt-1 flex items-center gap-2">
@@ -137,9 +137,9 @@ export function BudgetProgress({
         {initialBudget && (
           <div className="space-y-2">
             <Progress value={percentUsed} extraStyles={progressColor} />
-            <div className="flex items-center justify-between text-xs text-slate-500">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>Used</span>
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-slate-700 dark:text-slate-300">
                 {percentUsed.toFixed(1)}%
               </span>
             </div>

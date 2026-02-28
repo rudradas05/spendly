@@ -18,10 +18,10 @@ export default function NotFound() {
           <span className="gradient-title text-4xl">404</span>
         </div>
         <p className="section-kicker">Page not found</p>
-        <h1 className="mt-2 font-display text-4xl font-semibold text-slate-900 md:text-5xl">
+        <h1 className="mt-2 font-display text-4xl font-semibold text-slate-900 dark:text-slate-100 md:text-5xl">
           This page drifted away
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600">
+        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600 dark:text-slate-400">
           The link you followed doesn&apos;t exist or was moved. Let&apos;s get
           you back on track.
         </p>

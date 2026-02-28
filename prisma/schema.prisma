@@ -5,14 +5,14 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   // output   = "../lib/generated/prisma"
   engineType = "binary"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -25,6 +25,8 @@ model User {
   transactions Transaction[]
   accounts     Account[]
   budgets      Budget[]
+  importLogs   ImportLog[]
+  goals        Goal[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -41,6 +43,7 @@ model Account {
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  importLogs   ImportLog[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -107,4 +110,47 @@ enum RecurringInterval {
   WEEKLY
   MONTHLY
   YEARLY
+}
+
+model ImportLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName  String
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  totalRows Int
+  imported  Int
+  skipped   Int
+  errors    Int
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([accountId])
+  @@map("import_logs")
+}
+
+model Goal {
+  id            String     @id @default(cuid())
+  name          String
+  targetAmount  Decimal
+  currentAmount Decimal    @default(0)
+  deadline      DateTime?
+  color         String     @default("#10b981") // Default emerald-500
+  icon          String     @default("target") // Lucide icon name
+  category      String? // Optional category link
+  status        GoalStatus @default(ACTIVE)
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
+  @@map("goals")
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }

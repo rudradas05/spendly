@@ -82,15 +82,15 @@ const AccountCard = ({ account }: AccountCardProps) => {
           href={`/account/${id}`}
           className="flex flex-1 items-center gap-3"
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-sm font-semibold text-slate-700 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 dark:bg-slate-700/70 dark:border-slate-600/60 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm">
             {initials || "AC"}
           </div>
           <div>
-            <CardTitle className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+            <CardTitle className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
               {name}
             </CardTitle>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-[0.26em] text-slate-400">
-              <span className="rounded-full border border-white/60 bg-white/70 px-2 py-1 text-[0.55rem] font-semibold text-slate-500">
+              <span className="rounded-full border border-white/60 bg-white/70 dark:bg-slate-700/70 dark:border-slate-600/60 px-2 py-1 text-[0.55rem] font-semibold text-slate-500 dark:text-slate-400">
                 {type.charAt(0) + type.slice(1).toLowerCase()}
               </span>
               {isDefault && (
@@ -119,18 +119,18 @@ const AccountCard = ({ account }: AccountCardProps) => {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Available balance
           </p>
-          <div className="mt-2 text-3xl font-semibold text-slate-900">
+          <div className="mt-2 text-3xl font-semibold text-slate-900 dark:text-slate-100">
             {CURRENCY_SYMBOL}
             {balanceValue.toFixed(2)}
           </div>
-          <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-4 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-2">
               <span
                 className={cn("h-1.5 w-1.5 rounded-full", minBalanceDotClass)}
               />
               Min balance
             </span>
-            <span className="font-medium text-slate-700">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
               {minBalanceLabel}
             </span>
           </div>

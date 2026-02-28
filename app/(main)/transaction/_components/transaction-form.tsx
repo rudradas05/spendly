@@ -61,11 +61,20 @@ interface TransactionFormData {
   recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
 }
 
+interface ScannedData {
+  amount: number;
+  date: string;
+  description: string;
+  category: string;
+  confidence: number;
+}
+
 interface AddTransactionFormProps {
   accounts: AccountOption[];
   categories: Category[];
   initialData?: TransactionFormData | null;
   forceEdit?: boolean;
+  scannedData?: ScannedData | null;
 }
 
 const AddTransactionForm = ({
@@ -73,6 +82,7 @@ const AddTransactionForm = ({
   categories = [],
   initialData = null,
   forceEdit = false,
+  scannedData = null,
 }: AddTransactionFormProps) => {
   const router = useRouter();
   const canUpdate = Boolean(initialData?.id);
@@ -135,6 +145,30 @@ const AddTransactionForm = ({
   useEffect(() => {
     reset(formDefaults);
   }, [formDefaults, reset]);
+
+  // Handle scanned receipt data
+  useEffect(() => {
+    if (!scannedData) return;
+    if (scannedData.amount) {
+      setValue("amount", scannedData.amount.toString(), {
+        shouldValidate: true,
+      });
+    }
+    if (scannedData.date) {
+      setValue("date", new Date(scannedData.date), { shouldValidate: true });
+    }
+    if (scannedData.description) {
+      setValue("description", scannedData.description, {
+        shouldValidate: true,
+      });
+    }
+    if (scannedData.category) {
+      setValue("category", scannedData.category, { shouldValidate: true });
+    }
+    // Scanned receipts are typically expenses
+    setValue("type", "EXPENSE", { shouldValidate: true });
+    toast.success("Receipt scanned — review and confirm before saving");
+  }, [scannedData, setValue]);
 
   const type = watch("type");
   const dateValue = watch("date");
@@ -266,7 +300,7 @@ const AddTransactionForm = ({
                   "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all",
                   type === "EXPENSE"
                     ? "border-rose-300 bg-rose-50 text-rose-700 shadow-sm ring-2 ring-rose-200"
-                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-rose-50/50 hover:text-rose-600"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-rose-50/50 hover:text-rose-600",
                 )}
               >
                 <span className="h-2 w-2 rounded-full bg-rose-500" />
@@ -281,7 +315,7 @@ const AddTransactionForm = ({
                   "flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all",
                   type === "INCOME"
                     ? "border-emerald-300 bg-emerald-50 text-emerald-700 shadow-sm ring-2 ring-emerald-200"
-                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-emerald-50/50 hover:text-emerald-600"
+                    : "border-border/60 bg-background/70 text-muted-foreground hover:bg-emerald-50/50 hover:text-emerald-600",
                 )}
               >
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -323,7 +357,7 @@ const AddTransactionForm = ({
                       isActive &&
                         (type === "EXPENSE"
                           ? "border-rose-300 bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                          : "border-emerald-300 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200")
+                          : "border-emerald-300 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"),
                     )}
                     onClick={() =>
                       setValue("amount", value.toString(), {

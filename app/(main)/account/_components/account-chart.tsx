@@ -93,9 +93,9 @@ export function AccountChart({ transactions }: AccountChartProps) {
           income: acc.income + curr.income,
           expense: acc.expense + curr.expense,
         }),
-        { income: 0, expense: 0 }
+        { income: 0, expense: 0 },
       ),
-    [filteredData]
+    [filteredData],
   );
 
   return (
@@ -150,7 +150,7 @@ export function AccountChart({ transactions }: AccountChartProps) {
           </div>
 
           <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-3 shadow-sm">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
               Net
             </p>
             <p
@@ -182,7 +182,11 @@ export function AccountChart({ transactions }: AccountChartProps) {
                   <stop offset="100%" stopColor="#f97316" stopOpacity={0.2} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid
+                strokeDasharray="4 6"
+                vertical={false}
+                stroke="#e2e8f0"
+              />
               <XAxis
                 dataKey="date"
                 fontSize={12}

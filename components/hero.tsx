@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Receipt, Target, Upload } from "lucide-react";
 
 const HeroSection = () => {
   const imageRef = useRef<HTMLDivElement>(null);
@@ -29,92 +29,58 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden px-4 pb-24 pt-14 md:pb-32">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%),radial-gradient(circle_at_90%_20%,rgba(56,189,248,0.18),transparent_55%)]" />
-      <div className="container relative mx-auto grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-        <div className="space-y-6">
-          <span className="surface-chip animate-fade-in group cursor-default">
-            <Sparkles className="h-3.5 w-3.5 text-emerald-500 transition-transform group-hover:rotate-12" />
-            AI-powered money OS
-          </span>
-          <h1 className="gradient-title animate-slide-up text-5xl leading-tight md:text-7xl">
-            Manage your finances with calm, confident clarity.
-          </h1>
-          <p className="animate-slide-up stagger-1 max-w-xl text-lg leading-relaxed text-slate-600">
-            Spendly is the AI-powered command center that keeps your accounts,
-            budgets, and insights in sync—so you always know your next move.
-          </p>
-          <div className="animate-slide-up stagger-2 flex flex-wrap gap-3 pt-2">
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                className="group gap-2 px-8 shadow-[0_22px_40px_-25px_rgba(15,23,42,0.55)] transition-all hover:scale-[1.02] hover:shadow-[0_25px_50px_-25px_rgba(15,23,42,0.65)]"
-              >
-                Get started
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            </Link>
-            <Link href="#features">
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 transition-all hover:scale-[1.02]"
-              >
-                Explore features
-              </Button>
-            </Link>
-          </div>
-          <div className="grid gap-4 pt-6 sm:grid-cols-3">
-            {[
-              { label: "Automation rate", value: "92%" },
-              { label: "Avg. savings", value: "+18%" },
-              { label: "Time saved", value: "6.4h/mo" },
-            ].map((stat, index) => (
-              <div
-                key={stat.label}
-                className={`surface-panel animate-slide-up stagger-${index + 3} p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg`}
-              >
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                  {stat.label}
-                </p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">
-                  {stat.value}
-                </p>
-              </div>
-            ))}
-          </div>
+    <section className="relative overflow-hidden px-4 pb-20 pt-14">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_55%)]" />
+      <div className="container relative mx-auto max-w-4xl text-center">
+        <h1 className="gradient-title animate-slide-up text-4xl leading-tight md:text-6xl">
+          Track money. Simply.
+        </h1>
+        <p className="mx-auto mt-5 max-w-xl animate-slide-up text-base leading-relaxed text-slate-600 dark:text-slate-400 stagger-1 md:text-lg">
+          A clean expense tracker with AI receipt scanning, CSV imports, and
+          spending goals. No complexity, just clarity.
+        </p>
+
+        <div className="mt-8 flex flex-wrap justify-center gap-3 animate-slide-up stagger-2">
+          <Link href="/dashboard">
+            <Button
+              size="lg"
+              className="group gap-2 px-8 shadow-lg transition-all hover:scale-[1.02]"
+            >
+              Get started free
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Button>
+          </Link>
         </div>
 
-        <div className="relative animate-fade-in stagger-2">
+        {/* Feature Pills */}
+        <div className="mt-10 flex flex-wrap justify-center gap-3 animate-fade-in stagger-3">
+          <span className="surface-chip flex items-center gap-2 px-4 py-2">
+            <Receipt className="h-4 w-4 text-emerald-500" />
+            AI Receipt Scanner
+          </span>
+          <span className="surface-chip flex items-center gap-2 px-4 py-2">
+            <Upload className="h-4 w-4 text-blue-500" />
+            CSV Import
+          </span>
+          <span className="surface-chip flex items-center gap-2 px-4 py-2">
+            <Target className="h-4 w-4 text-purple-500" />
+            Spending Goals
+          </span>
+        </div>
+
+        {/* Dashboard Preview */}
+        <div className="relative mt-12 animate-fade-in stagger-4">
           <div className="hero-image-wrapper">
             <div ref={imageRef} className="hero-image">
               <Image
                 src="/banner.jpeg"
                 width={1280}
                 height={720}
-                alt="Dashboard preview showing financial analytics and budget tracking"
-                className="mx-auto rounded-3xl border border-white/70 shadow-[0_30px_80px_-55px_rgba(15,23,42,0.6)] transition-shadow hover:shadow-[0_35px_90px_-55px_rgba(15,23,42,0.7)]"
+                alt="Dashboard preview"
+                className="mx-auto rounded-2xl border border-white/60 shadow-2xl dark:border-slate-700"
                 priority
               />
             </div>
-          </div>
-
-          <div className="pointer-events-none absolute -left-6 bottom-10 hidden w-48 animate-slide-up rounded-2xl border border-white/60 bg-white/85 p-4 text-left shadow-lg backdrop-blur-lg stagger-4 lg:block">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-              Monthly net
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-600">
-              +$3,482
-            </p>
-            <p className="text-xs text-slate-500">Up 12% vs last month</p>
-          </div>
-
-          <div className="pointer-events-none absolute -right-6 top-10 hidden w-52 animate-slide-up rounded-2xl border border-white/60 bg-white/85 p-4 text-left shadow-lg backdrop-blur-lg stagger-5 lg:block">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-              Cash runway
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">7.4 mo</p>
-            <p className="text-xs text-slate-500">Based on current burn</p>
           </div>
         </div>
       </div>

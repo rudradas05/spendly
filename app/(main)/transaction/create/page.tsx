@@ -1,13 +1,15 @@
 import { getUserAccounts } from "@/actions/dashboard";
 import { getTransaction } from "@/actions/transaction";
 import { defaultCategories } from "@/data/categories";
-import AddTransactionForm from "../_components/transaction-form";
+import TransactionFormWrapper from "../_components/transaction-form-wrapper";
 
 interface AddTransactionPageProps {
   searchParams?: { edit?: string } | Promise<{ edit?: string }>;
 }
 
-const AddTransactionPage = async ({ searchParams }: AddTransactionPageProps) => {
+const AddTransactionPage = async ({
+  searchParams,
+}: AddTransactionPageProps) => {
   const resolvedSearchParams = await Promise.resolve(searchParams);
   const accounts = (await getUserAccounts()) ?? [];
   const editParam = resolvedSearchParams?.edit;
@@ -34,11 +36,12 @@ const AddTransactionPage = async ({ searchParams }: AddTransactionPageProps) => 
         </p>
       </div>
 
-      <AddTransactionForm
+      <TransactionFormWrapper
         accounts={accounts}
         categories={defaultCategories}
         initialData={initialTransaction}
         forceEdit={isEditing}
+        showScanner={!isEditing}
       />
     </div>
   );

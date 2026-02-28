@@ -113,10 +113,12 @@ const AccountsPage = async ({ params }: AccountsPageProps) => {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="group rounded-2xl border border-border/60 bg-background/70 p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-transform group-hover:scale-105">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-transform group-hover:scale-105">
                 <TrendingUp className="h-5 w-5" />
               </div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Balance</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+                Balance
+              </p>
             </div>
             <div
               className={`mt-3 text-2xl font-semibold tabular-nums ${isLowBalance ? "text-amber-600" : "text-slate-900"}`}

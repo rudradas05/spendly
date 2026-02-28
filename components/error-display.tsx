@@ -26,10 +26,10 @@ export function ErrorDisplay({
           <AlertTriangle className="h-8 w-8 text-rose-500" />
         </div>
         <p className="section-kicker text-rose-500">Error</p>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900">
+        <h2 className="mt-2 font-display text-2xl font-semibold text-slate-900 dark:text-slate-100">
           {title}
         </h2>
-        <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-slate-500">
+        <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
           {description}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
