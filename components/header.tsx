@@ -25,6 +25,8 @@ const Header = async () => {
           </Link>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
+
             <SignedIn>
               <Button
                 asChild
@@ -68,7 +70,6 @@ const Header = async () => {
                   <span className="hidden sm:inline">Add</span>
                 </Link>
               </Button>
-              <ThemeToggle />
               <UserButton
                 appearance={{
                   elements: {
