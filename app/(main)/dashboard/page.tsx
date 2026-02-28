@@ -178,7 +178,7 @@ export default async function DashboardPage() {
       <section id="accounts" className="space-y-5 scroll-mt-28">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-slate-900">
+            <h2 className="font-display text-2xl font-semibold text-slate-900 dark:text-white">
               Accounts
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -198,10 +198,10 @@ export default async function DashboardPage() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <CreateAccountDrawer>
-            <Card className="group cursor-pointer border-2 border-dashed border-emerald-200/70 bg-white/60 transition-all hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+            <Card className="group cursor-pointer border-2 border-dashed border-emerald-200/70 dark:border-emerald-800/70 bg-white/60 dark:bg-slate-800/60 transition-all hover:-translate-y-1 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-xl">
               <CardContent className="flex h-full min-h-40 flex-col items-center justify-center pt-5 text-muted-foreground transition-colors group-hover:text-emerald-600">
-                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-200/60 bg-emerald-50/70 transition-all group-hover:scale-105 group-hover:bg-emerald-100">
-                  <Plus className="h-7 w-7 text-emerald-600" />
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-200/60 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-900/30 transition-all group-hover:scale-105 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50">
+                  <Plus className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <p className="font-medium">Add New Account</p>
                 <p className="mt-1 text-xs text-muted-foreground/70">

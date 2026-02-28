@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Pencil,
-  Trash2,
-  Download,
-  Loader2,
-  AlertTriangle,
-} from "lucide-react";
+import { Pencil, Trash2, Download, Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -68,7 +62,9 @@ export function AccountActions({
   // Edit form state
   const [name, setName] = useState(accountName);
   const [type, setType] = useState<"CURRENT" | "SAVINGS">(accountType);
-  const [minBal, setMinBal] = useState(minBalance > 0 ? minBalance.toString() : "");
+  const [minBal, setMinBal] = useState(
+    minBalance > 0 ? minBalance.toString() : "",
+  );
 
   // Reset edit state when drawer opens
   useEffect(() => {
@@ -79,20 +75,13 @@ export function AccountActions({
     }
   }, [editOpen, accountName, accountType, minBalance]);
 
-  const {
-    loading: updateLoading,
-    fn: updateFn,
-  } = useFetch(updateAccount);
+  const { loading: updateLoading, fn: updateFn } = useFetch(updateAccount);
 
-  const {
-    loading: deleteLoading,
-    fn: deleteFn,
-  } = useFetch(deleteAccount);
+  const { loading: deleteLoading, fn: deleteFn } = useFetch(deleteAccount);
 
-  const {
-    loading: exportLoading,
-    fn: exportFn,
-  } = useFetch(exportTransactionsCSV);
+  const { loading: exportLoading, fn: exportFn } = useFetch(
+    exportTransactionsCSV,
+  );
 
   const handleUpdate = async () => {
     const result = await updateFn(accountId, {
@@ -252,15 +241,15 @@ export function AccountActions({
             Delete
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-md rounded-2xl border-white/70 bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-md rounded-2xl border-white/70 dark:border-slate-700/70 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
           <DialogHeader>
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/50">
               <AlertTriangle className="h-6 w-6 text-rose-600" />
             </div>
             <DialogTitle className="text-center">Delete account</DialogTitle>
             <DialogDescription className="text-center">
               This will permanently delete{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 {accountName}
               </span>{" "}
               and all its transactions. This action cannot be undone.
@@ -269,7 +258,7 @@ export function AccountActions({
 
           <div className="space-y-3 px-1">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Type <span className="font-semibold">{accountName}</span> to
                 confirm
               </label>

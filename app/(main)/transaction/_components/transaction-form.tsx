@@ -255,7 +255,7 @@ const AddTransactionForm = ({
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50/70">
           <Loader2 className="h-8 w-8 text-emerald-600" />
         </div>
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
           Create an account first
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -279,7 +279,7 @@ const AddTransactionForm = ({
           {isEditing && <span className="surface-chip">Editing</span>}
         </div>
         <div className="mt-1 flex flex-col gap-1">
-          <h2 className="text-base font-semibold text-slate-900">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-white">
             Transaction basics
           </h2>
           <p className="text-xs text-muted-foreground">

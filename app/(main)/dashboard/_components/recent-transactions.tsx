@@ -28,7 +28,12 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
           <h3 className="text-lg font-semibold">Recent transactions</h3>
         </div>
         <div className="flex gap-2">
-          <Button asChild size="sm" variant="ghost" className="text-muted-foreground">
+          <Button
+            asChild
+            size="sm"
+            variant="ghost"
+            className="text-muted-foreground"
+          >
             <Link href="/account">View all</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
@@ -46,21 +51,21 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
           transactions.map((transaction) => {
             const isExpense = transaction.type === "EXPENSE";
             const amount = `${isExpense ? "-" : "+"}${CURRENCY_SYMBOL}${transaction.amount.toFixed(
-              2
+              2,
             )}`;
 
             return (
               <Link
                 href={`/transaction/create?edit=${transaction.id}`}
                 key={transaction.id}
-                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-4 py-3 transition-colors hover:bg-white/80 hover:shadow-sm"
+                className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-4 py-3 transition-colors hover:bg-white/80 dark:hover:bg-slate-700/80 hover:shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-full ${
                       isExpense
-                        ? "bg-rose-100 text-rose-600"
-                        : "bg-emerald-100 text-emerald-600"
+                        ? "bg-rose-100 dark:bg-rose-900/50 text-rose-600"
+                        : "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600"
                     }`}
                   >
                     {isExpense ? (

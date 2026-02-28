@@ -27,7 +27,7 @@ const InsightsPanel = ({
 
       <div className="mt-6 space-y-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600">
             {trendUp ? (
               <TrendingUp className="h-5 w-5" />
             ) : (
@@ -41,7 +41,7 @@ const InsightsPanel = ({
         </div>
 
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600">
             <Wallet className="h-5 w-5" />
           </div>
           <div>

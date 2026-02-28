@@ -370,7 +370,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
               paginatedTransactions.map((transaction) => (
                 <TableRow
                   key={transaction.id}
-                  className="cursor-pointer transition-colors hover:bg-white/70"
+                  className="cursor-pointer transition-colors hover:bg-white/70 dark:hover:bg-slate-700/70"
                   onClick={() =>
                     router.push(`/transaction/create?edit=${transaction.id}`)
                   }
@@ -419,7 +419,7 @@ const TransactionTable = ({ transactions }: TransactionTableProps) => {
                           <TooltipTrigger asChild>
                             <Badge
                               variant="outline"
-                              className="gap-1 border-emerald-200 bg-emerald-100/80 text-emerald-700"
+                              className="gap-1 border-emerald-200 dark:border-emerald-800 bg-emerald-100/80 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400"
                             >
                               <RefreshCw className="h-3 w-3" />
                               {

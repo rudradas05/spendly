@@ -122,9 +122,9 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent className="border-white/70 bg-white/85 backdrop-blur-xl shadow-[0_35px_90px_-60px_rgba(15,23,42,0.6)] data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:w-[min(760px,94vw)] data-[vaul-drawer-direction=bottom]:-translate-x-1/2 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border data-[vaul-drawer-direction=bottom]:mb-6">
+      <DrawerContent className="border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_35px_90px_-60px_rgba(15,23,42,0.6)] data-[vaul-drawer-direction=bottom]:left-1/2 data-[vaul-drawer-direction=bottom]:right-auto data-[vaul-drawer-direction=bottom]:w-[min(760px,94vw)] data-[vaul-drawer-direction=bottom]:-translate-x-1/2 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border data-[vaul-drawer-direction=bottom]:mb-6">
         <DrawerHeader className="px-6 pt-6">
-          <DrawerTitle className="text-slate-900">
+          <DrawerTitle className="text-slate-900 dark:text-white">
             Create new account
           </DrawerTitle>
           <DrawerDescription className="text-sm text-muted-foreground">
@@ -276,7 +276,7 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {nameValue || "New account"}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -286,7 +286,7 @@ const CreateAccountDrawer = ({ children }: CreateAccountDrawerProps) => {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">Balance</p>
-                    <p className="text-lg font-semibold text-slate-900">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white">
                       {CURRENCY_SYMBOL}
                       {safeBalance.toFixed(2)}
                     </p>
