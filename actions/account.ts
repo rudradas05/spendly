@@ -3,70 +3,20 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath, unstable_noStore as noStore } from "next/cache";
-
-type DecimalLike = { toNumber: () => number };
-type SerializableAmounts = {
-  balance?: DecimalLike | number | null;
-  amount?: DecimalLike | number | null;
-  minBalance?: DecimalLike | number | null;
-};
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong";
-
-const serializeTransaction = <
-  T extends Record<string, unknown> & SerializableAmounts,
->(
-  obj: T
-) => {
-  const serialized = {
-    ...obj,
-  } as T & { balance?: number | null; amount?: number | null };
-
-  if (obj.balance !== undefined) {
-    serialized.balance =
-      obj.balance && typeof obj.balance === "object" && "toNumber" in obj.balance
-        ? obj.balance.toNumber()
-        : (obj.balance ?? null);
-  }
-  if (obj.amount !== undefined) {
-    serialized.amount =
-      obj.amount && typeof obj.amount === "object" && "toNumber" in obj.amount
-        ? obj.amount.toNumber()
-        : (obj.amount ?? null);
-  }
-  if (obj.minBalance !== undefined) {
-    serialized.minBalance =
-      obj.minBalance &&
-      typeof obj.minBalance === "object" &&
-      "toNumber" in obj.minBalance
-        ? obj.minBalance.toNumber()
-        : (obj.minBalance ?? null);
-  }
-  return serialized;
-};
+import { serializeDecimal, getErrorMessage } from "@/lib/serialize";
 
 export async function updateDefaultAccount(accountId: string) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
     const existingAccount = await db.account.findFirst({
-      where: {
-        id: accountId,
-        userId: user.id,
-      },
+      where: { id: accountId, userId: user.id },
     });
-    if (!existingAccount) {
-      throw new Error("Account not found");
-    }
+    if (!existingAccount) throw new Error("Account not found");
 
     await db.account.updateMany({
       where: { userId: user.id, isDefault: true },
@@ -74,16 +24,12 @@ export async function updateDefaultAccount(accountId: string) {
     });
 
     const account = await db.account.update({
-      where: {
-        id: accountId,
-      },
-      data: {
-        isDefault: true,
-      },
+      where: { id: accountId },
+      data: { isDefault: true },
     });
 
     revalidatePath("/dashboard");
-    return { success: true, data: serializeTransaction(account) };
+    return { success: true, data: serializeDecimal(account) };
   } catch (error: unknown) {
     return { success: false, error: getErrorMessage(error) };
   }
@@ -94,33 +40,21 @@ export async function getAccountWithTransactions(accountId: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  if (!user) throw new Error("User not found");
 
   const account = await db.account.findFirst({
     where: { id: accountId, userId: user.id },
     include: {
-      transactions: {
-        orderBy: {
-          date: "desc",
-        },
-      },
-      _count: {
-        select: {
-          transactions: true,
-        },
-      },
+      transactions: { orderBy: { date: "desc" } },
+      _count: { select: { transactions: true } },
     },
   });
 
   if (!account) return null;
   return {
-    ...serializeTransaction(account),
-    transactions: account.transactions.map(serializeTransaction),
+    ...serializeDecimal(account),
+    transactions: account.transactions.map(serializeDecimal),
   };
 }
 
@@ -129,34 +63,21 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
     const transactions = await db.transaction.findMany({
-      where: {
-        id: { in: transactionIds },
-        userId: user.id,
-      },
+      where: { id: { in: transactionIds }, userId: user.id },
     });
 
-    if (transactions.length === 0) {
+    if (transactions.length === 0)
       return { success: false, message: "No transactions found" };
-    }
 
     const accountBalanceChanges: Record<string, number> = transactions.reduce(
-      (acc, transaction) => {
-        const amount =
-          transaction.amount?.toNumber?.() ?? Number(transaction.amount);
-        const change =
-          transaction.type === "EXPENSE" ? amount : -amount;
-
-        acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
-
+      (acc, t) => {
+        const amount = t.amount?.toNumber?.() ?? Number(t.amount);
+        const change = t.type === "EXPENSE" ? amount : -amount;
+        acc[t.accountId] = (acc[t.accountId] || 0) + change;
         return acc;
       },
       {} as Record<string, number>
@@ -164,31 +85,18 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
 
     await db.$transaction(async (tx) => {
       await tx.transaction.deleteMany({
-        where: {
-          id: { in: transactionIds },
-          userId: user.id,
-        },
+        where: { id: { in: transactionIds }, userId: user.id },
       });
-
-      for (const [accountId, balanceChange] of Object.entries(
-        accountBalanceChanges
-      )) {
+      for (const [accountId, balanceChange] of Object.entries(accountBalanceChanges)) {
         await tx.account.update({
           where: { id: accountId },
-          data: {
-            balance: {
-              increment: balanceChange,
-            },
-          },
+          data: { balance: { increment: balanceChange } },
         });
       }
     });
 
-    Object.keys(accountBalanceChanges).forEach((accountId) => {
-      revalidatePath(`/account/${accountId}`);
-    });
+    Object.keys(accountBalanceChanges).forEach((id) => revalidatePath(`/account/${id}`));
     revalidatePath("/dashboard");
-
     return { success: true };
   } catch (error: unknown) {
     const message = getErrorMessage(error);
@@ -203,17 +111,12 @@ interface UpdateAccountInput {
   minBalance?: string;
 }
 
-export async function updateAccount(
-  accountId: string,
-  data: UpdateAccountInput
-) {
+export async function updateAccount(accountId: string, data: UpdateAccountInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
     if (!user) throw new Error("User not found");
 
     const existing = await db.account.findFirst({
@@ -226,20 +129,15 @@ export async function updateAccount(
     if (data.type !== undefined) updateData.type = data.type;
     if (data.minBalance !== undefined) {
       const minBal = parseFloat(data.minBalance);
-      if (Number.isNaN(minBal) || minBal < 0) {
-        throw new Error("Invalid minimum balance");
-      }
+      if (Number.isNaN(minBal) || minBal < 0) throw new Error("Invalid minimum balance");
       updateData.minBalance = minBal;
     }
 
-    const account = await db.account.update({
-      where: { id: accountId },
-      data: updateData,
-    });
+    const account = await db.account.update({ where: { id: accountId }, data: updateData });
 
     revalidatePath("/dashboard");
     revalidatePath(`/account/${accountId}`);
-    return { success: true, data: serializeTransaction(account) };
+    return { success: true, data: serializeDecimal(account) };
   } catch (error: unknown) {
     return { success: false, error: getErrorMessage(error) };
   }
@@ -250,30 +148,21 @@ export async function deleteAccount(accountId: string) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
     if (!user) throw new Error("User not found");
 
-    const account = await db.account.findFirst({
-      where: { id: accountId, userId: user.id },
-    });
+    const account = await db.account.findFirst({ where: { id: accountId, userId: user.id } });
     if (!account) throw new Error("Account not found");
 
-    // Cascade deletes transactions automatically via Prisma schema
     await db.account.delete({ where: { id: accountId } });
 
-    // If deleted account was default, set another account as default
     if (account.isDefault) {
       const nextAccount = await db.account.findFirst({
         where: { userId: user.id },
         orderBy: { createdAt: "asc" },
       });
       if (nextAccount) {
-        await db.account.update({
-          where: { id: nextAccount.id },
-          data: { isDefault: true },
-        });
+        await db.account.update({ where: { id: nextAccount.id }, data: { isDefault: true } });
       }
     }
 
@@ -289,16 +178,12 @@ export async function exportTransactionsCSV(accountId: string) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
     if (!user) throw new Error("User not found");
 
     const account = await db.account.findFirst({
       where: { id: accountId, userId: user.id },
-      include: {
-        transactions: { orderBy: { date: "desc" } },
-      },
+      include: { transactions: { orderBy: { date: "desc" } } },
     });
     if (!account) throw new Error("Account not found");
 

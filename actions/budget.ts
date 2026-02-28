@@ -1,62 +1,39 @@
 "use server";
+
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { getErrorMessage } from "@/lib/serialize";
 
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong";
-
-export async function getCurrentBudget(_accountId?: string) {
+export async function getCurrentBudget() {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const budget = await db.budget.findFirst({ where: { userId: user.id } });
 
-    const budget = await db.budget.findFirst({
-      where: {
-        userId: user.id,
-      },
-    });
     const currentDate = new Date();
-    const startOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1
-    );
-    const endOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      0
-    );
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
     const expenses = await db.transaction.aggregate({
       where: {
         userId: user.id,
         type: "EXPENSE",
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
+        date: { gte: startOfMonth, lte: endOfMonth },
       },
-      _sum: {
-        amount: true,
-      },
+      _sum: { amount: true },
     });
 
     return {
       budget: budget ? { ...budget, amount: budget.amount.toNumber() } : null,
-      currentExpenses: expenses._sum.amount
-        ? expenses._sum.amount.toNumber()
-        : 0,
+      currentExpenses: expenses._sum.amount ? expenses._sum.amount.toNumber() : 0,
     };
-  } catch (error) {
-    throw error;
+  } catch (error: unknown) {
+    return { budget: null, currentExpenses: 0, error: getErrorMessage(error) };
   }
 }
 
@@ -65,32 +42,20 @@ export async function updateBudget(amount: number) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (typeof amount !== "number" || Number.isNaN(amount) || amount <= 0)
+      throw new Error("Invalid budget amount");
 
     const budget = await db.budget.upsert({
-      where: {
-        userId: user.id,
-      },
-      update: {
-        amount,
-      },
-      create: {
-        userId: user.id,
-        amount,
-      },
+      where: { userId: user.id },
+      update: { amount },
+      create: { userId: user.id, amount },
     });
 
     revalidatePath("/dashboard");
-    return {
-      success: true,
-      data: { ...budget, amount: budget.amount.toNumber() },
-    };
+    return { success: true, data: { ...budget, amount: budget.amount.toNumber() } };
   } catch (error: unknown) {
     return { success: false, error: getErrorMessage(error) };
   }

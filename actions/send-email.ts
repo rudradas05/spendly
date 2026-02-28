@@ -1,3 +1,5 @@
+"use server";
+
 import { Resend } from "resend";
 import type { ReactElement } from "react";
 
@@ -14,7 +16,7 @@ export async function sendEmail({ to, subject, react }: SendEmailParams) {
   const resend = new Resend(process.env.RESEND_API_KEY || "");
   try {
     const data = await resend.emails.send({
-      from: "Welth - Finance App <onboarding@resend.dev>",
+      from: "Spendly <onboarding@resend.dev>",
       to,
       subject,
       react,

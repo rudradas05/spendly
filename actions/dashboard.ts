@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { format } from "date-fns";
 import { categoryColors, defaultCategories } from "@/data/categories";
+import { serializeDecimal, toNumber, getErrorMessage } from "@/lib/serialize";
 
 interface CreateAccountInput {
   name: string;
@@ -14,79 +15,20 @@ interface CreateAccountInput {
   isDefault: boolean;
 }
 
-type DecimalLike = { toNumber: () => number };
-type SerializableAmounts = {
-  balance?: DecimalLike | number | null;
-  amount?: DecimalLike | number | null;
-  minBalance?: DecimalLike | number | null;
-};
-
-const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong";
-
-const toNumber = (value: DecimalLike | number | null | undefined) => {
-  if (value === null || value === undefined) return 0;
-  if (typeof value === "object" && "toNumber" in value) {
-    return value.toNumber();
-  }
-  return Number(value);
-};
-
-const serializeTransaction = <
-  T extends Record<string, unknown> & SerializableAmounts,
->(
-  obj: T
-) => {
-  const serialized = {
-    ...obj,
-  } as T & { balance?: number | null; amount?: number | null };
-
-  if (obj.balance !== undefined) {
-    serialized.balance =
-      obj.balance && typeof obj.balance === "object" && "toNumber" in obj.balance
-        ? obj.balance.toNumber()
-        : (obj.balance ?? null);
-  }
-  if (obj.amount !== undefined) {
-    serialized.amount =
-      obj.amount && typeof obj.amount === "object" && "toNumber" in obj.amount
-        ? obj.amount.toNumber()
-        : (obj.amount ?? null);
-  }
-  if (obj.minBalance !== undefined) {
-    serialized.minBalance =
-      obj.minBalance &&
-      typeof obj.minBalance === "object" &&
-      "toNumber" in obj.minBalance
-        ? obj.minBalance.toNumber()
-        : (obj.minBalance ?? null);
-  }
-  return serialized;
-};
-
 export async function createAccount(data: CreateAccountInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
     const balanceFloat = parseFloat(data.balance);
-    if (Number.isNaN(balanceFloat)) {
-      throw new Error("Invalid balance amount");
-    }
+    if (Number.isNaN(balanceFloat)) throw new Error("Invalid balance amount");
 
     const existingAccounts = await db.account.findMany({
-      where: {
-        userId: user.id,
-      },
+      where: { userId: user.id },
     });
-
     const shouldBeDefault =
       existingAccounts.length === 0 ? true : data.isDefault;
 
@@ -101,9 +43,8 @@ export async function createAccount(data: CreateAccountInput) {
       data.minBalance && data.minBalance.trim() !== ""
         ? parseFloat(data.minBalance)
         : 0;
-    if (Number.isNaN(minBalanceFloat) || minBalanceFloat < 0) {
+    if (Number.isNaN(minBalanceFloat) || minBalanceFloat < 0)
       throw new Error("Invalid minimum balance amount");
-    }
 
     const account = await db.account.create({
       data: {
@@ -115,9 +56,8 @@ export async function createAccount(data: CreateAccountInput) {
       },
     });
 
-    const serializedAccount = serializeTransaction(account);
     revalidatePath("/dashboard");
-    return { success: true, data: serializedAccount };
+    return { success: true, data: serializeDecimal(account) };
   } catch (error: unknown) {
     throw new Error(getErrorMessage(error));
   }
@@ -127,31 +67,16 @@ export async function getUserAccounts() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
+  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+  if (!user) throw new Error("User not found");
+
+  const accounts = await db.account.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { transactions: true } } },
   });
 
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  try {
-    const accounts = await db.account.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      include: {
-        _count: {
-          select: {
-            transactions: true,
-          },
-        },
-      },
-    });
-
-    return accounts.map(serializeTransaction);
-  } catch (error: unknown) {
-    console.error(getErrorMessage(error));
-  }
+  return accounts.map(serializeDecimal);
 }
 
 type CashflowPoint = {
@@ -160,7 +85,6 @@ type CashflowPoint = {
   expense: number;
   net: number;
 };
-
 type RecentTransaction = {
   id: string;
   description: string | null;
@@ -176,13 +100,8 @@ export async function getDashboardOverview() {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await db.user.findUnique({ where: { clerkUserId: userId } });
+    if (!user) throw new Error("User not found");
 
     const accounts = await db.account.findMany({
       where: { userId: user.id },
@@ -190,8 +109,8 @@ export async function getDashboardOverview() {
     });
 
     const totalBalance = accounts.reduce(
-      (sum, account) => sum + toNumber(account.balance),
-      0
+      (sum, a) => sum + toNumber(a.balance),
+      0,
     );
 
     const now = new Date();
@@ -203,43 +122,33 @@ export async function getDashboardOverview() {
       23,
       59,
       59,
-      999
+      999,
     );
 
     const monthTransactions = await db.transaction.findMany({
-      where: {
-        userId: user.id,
-        date: { gte: startOfMonth, lte: endOfMonth },
-      },
-      select: {
-        amount: true,
-        type: true,
-        category: true,
-      },
+      where: { userId: user.id, date: { gte: startOfMonth, lte: endOfMonth } },
+      select: { amount: true, type: true, category: true },
     });
 
     let monthIncome = 0;
     let monthExpense = 0;
     const categoryMap = new Map<string, number>();
 
-    monthTransactions.forEach((transaction) => {
-      const amount = toNumber(transaction.amount);
-      if (transaction.type === "INCOME") {
+    monthTransactions.forEach((t) => {
+      const amount = toNumber(t.amount);
+      if (t.type === "INCOME") {
         monthIncome += amount;
       } else {
         monthExpense += amount;
         categoryMap.set(
-          transaction.category,
-          (categoryMap.get(transaction.category) || 0) + amount
+          t.category,
+          (categoryMap.get(t.category) || 0) + amount,
         );
       }
     });
 
     const net = monthIncome - monthExpense;
-
-    const categoryIndex = new Map(
-      defaultCategories.map((category) => [category.id, category])
-    );
+    const categoryIndex = new Map(defaultCategories.map((c) => [c.id, c]));
 
     const breakdown = Array.from(categoryMap.entries())
       .map(([id, amount]) => ({
@@ -254,58 +163,46 @@ export async function getDashboardOverview() {
     const remainder = breakdown
       .slice(5)
       .reduce((sum, item) => sum + item.amount, 0);
-    if (remainder > 0) {
+    if (remainder > 0)
       topBreakdown.push({
         id: "other",
         name: "Other",
         amount: remainder,
         color: "#CBD5F5",
       });
-    }
 
     const trendStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     const trendTransactions = await db.transaction.findMany({
-      where: {
-        userId: user.id,
-        date: { gte: trendStart, lte: endOfMonth },
-      },
-      select: {
-        amount: true,
-        type: true,
-        date: true,
-      },
+      where: { userId: user.id, date: { gte: trendStart, lte: endOfMonth } },
+      select: { amount: true, type: true, date: true },
     });
 
-    const months = Array.from({ length: 6 }, (_, index) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
       return {
         key: `${date.getFullYear()}-${date.getMonth()}`,
         label: format(date, "MMM"),
-        date,
       };
     });
 
-    const monthlyCashflow: CashflowPoint[] = months.map((month) => ({
-      month: month.label,
+    const monthlyCashflow: CashflowPoint[] = months.map((m) => ({
+      month: m.label,
       income: 0,
       expense: 0,
       net: 0,
     }));
 
-    trendTransactions.forEach((transaction) => {
-      const key = `${transaction.date.getFullYear()}-${transaction.date.getMonth()}`;
-      const index = months.findIndex((month) => month.key === key);
+    trendTransactions.forEach((t) => {
+      const key = `${t.date.getFullYear()}-${t.date.getMonth()}`;
+      const index = months.findIndex((m) => m.key === key);
       if (index === -1) return;
-      const amount = toNumber(transaction.amount);
-      if (transaction.type === "INCOME") {
-        monthlyCashflow[index].income += amount;
-      } else {
-        monthlyCashflow[index].expense += amount;
-      }
+      const amount = toNumber(t.amount);
+      if (t.type === "INCOME") monthlyCashflow[index].income += amount;
+      else monthlyCashflow[index].expense += amount;
     });
 
-    monthlyCashflow.forEach((point) => {
-      point.net = point.income - point.expense;
+    monthlyCashflow.forEach((p) => {
+      p.net = p.income - p.expense;
     });
 
     const currentMonthExpense =
@@ -314,12 +211,15 @@ export async function getDashboardOverview() {
       monthlyCashflow[monthlyCashflow.length - 2]?.expense ?? 0;
     const expenseChange =
       previousMonthExpense > 0
-        ? ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) *
+        ? ((currentMonthExpense - previousMonthExpense) /
+            previousMonthExpense) *
           100
         : null;
 
     const savingsRate =
-      monthIncome > 0 ? Math.min(100, Math.max(0, (net / monthIncome) * 100)) : null;
+      monthIncome > 0
+        ? Math.min(100, Math.max(0, (net / monthIncome) * 100))
+        : null;
 
     const recentTransactions = await db.transaction.findMany({
       where: { userId: user.id },
@@ -332,20 +232,18 @@ export async function getDashboardOverview() {
         type: true,
         category: true,
         date: true,
-        account: {
-          select: { name: true },
-        },
+        account: { select: { name: true } },
       },
     });
 
-    const recent: RecentTransaction[] = recentTransactions.map((transaction) => ({
-      id: transaction.id,
-      description: transaction.description,
-      category: transaction.category,
-      type: transaction.type,
-      amount: toNumber(transaction.amount),
-      date: transaction.date,
-      accountName: transaction.account.name,
+    const recent: RecentTransaction[] = recentTransactions.map((t) => ({
+      id: t.id,
+      description: t.description,
+      category: t.category,
+      type: t.type,
+      amount: toNumber(t.amount),
+      date: t.date,
+      accountName: t.account.name,
     }));
 
     return {
@@ -366,7 +264,7 @@ export async function getDashboardOverview() {
       recent,
     };
   } catch (error: unknown) {
-    console.error(getErrorMessage(error));
+    console.error("[getDashboardOverview]", getErrorMessage(error));
     return {
       totals: {
         totalBalance: 0,
@@ -377,11 +275,7 @@ export async function getDashboardOverview() {
       },
       cashflow: [],
       categories: [],
-      insights: {
-        expenseChange: null,
-        savingsRate: null,
-        topCategory: null,
-      },
+      insights: { expenseChange: null, savingsRate: null, topCategory: null },
       recent: [],
     };
   }
